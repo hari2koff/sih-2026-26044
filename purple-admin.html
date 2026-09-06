@@ -1,0 +1,522 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="purple-light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purple — Enterprise Web Admin Dashboard UI/UX Mockup</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Standalone specific adjustments */
+    body {
+      background-color: #F4F5F7;
+      color: #111827;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    .standalone-nav-bar {
+      background: #FFFFFF;
+      border-bottom: 1px solid #E5E7EB;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .standalone-container {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 28px 32px 64px 32px;
+    }
+    .search-pill-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 9999px;
+      padding: 7px 16px;
+      width: 320px;
+    }
+    .search-pill-box input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 0.84rem;
+      color: #1E293B;
+      width: 100%;
+    }
+  </style>
+</head>
+<body data-theme="purple-light">
+
+  <!-- Top App Navigation -->
+  <header class="standalone-nav-bar">
+    <div style="display: flex; align-items: center; gap: 24px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="purple-logo-box">P</div>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #111827; line-height: 1.1;">Purple.io</div>
+          <div style="font-size: 0.72rem; color: #64748B; font-weight: 600;">Light Mode Admin Dashboard UI/UX</div>
+        </div>
+      </div>
+
+      <div class="search-pill-box">
+        <span style="color: #94A3B8; font-size: 0.9rem;">🔍</span>
+        <input type="text" placeholder="Search telemetry, candidates, or MOUs...">
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <!-- Theme Switcher -->
+      <div class="theme-mode-wrap">
+        <span class="theme-mode-label">Theme:</span>
+        <button class="theme-pill" onclick="window.location.href='index.html'" title="Switch to Obsidian Dark Mode">🌙 Obsidian</button>
+        <button class="theme-pill active" title="Purple Light Mode Active">☀️ Purple Light</button>
+      </div>
+
+      <a href="index.html" class="btn-card-action" style="background: #F1F5F9; color: #1E293B; border: 1px solid #CBD5E1; text-decoration: none; padding: 7px 16px; font-weight: 700; border-radius: 9999px;">
+        ← Return to SkillBridge Platform
+      </a>
+
+      <!-- Profile Avatar -->
+      <div style="display: flex; align-items: center; gap: 10px; padding-left: 10px; border-left: 1px solid #E2E8F0;">
+        <div class="avatar" style="background: rgba(160, 90, 255, 0.15); color: #A05AFF; border: 1.5px solid #A05AFF; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.88rem;">
+          AD
+        </div>
+        <div>
+          <div style="font-size: 0.82rem; font-weight: 700; color: #111827;">System Admin</div>
+          <div style="font-size: 0.7rem; color: #64748B;">Superuser Privileges</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <div class="standalone-container">
+
+    <!-- Header Intro -->
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px;">
+      <div>
+        <h1 style="font-size: 1.65rem; font-weight: 800; color: #111827; letter-spacing: -0.02em; margin: 0 0 4px 0;">
+          Executive Placement &amp; Skill Mapping Analytics
+        </h1>
+        <p style="color: #64748B; font-size: 0.88rem; margin: 0;">
+          Real-time AI telemetry correlating academic curriculum benchmark progress with industry hiring velocity.
+        </p>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 0.78rem; color: #0D9488; background: rgba(27, 207, 180, 0.12); padding: 6px 14px; border-radius: 9999px; font-weight: 700;">
+          ● Telemetry Synchronized
+        </span>
+        <button class="btn-action-sm" onclick="alert('Exporting executive telemetry report PDF...');" style="background: #A05AFF; color: #FFFFFF; font-weight: 700; border: none; padding: 8px 18px; border-radius: 9999px; cursor: pointer; box-shadow: 0 4px 14px rgba(160, 90, 255, 0.3);">
+          📥 Export Audit Report
+        </button>
+      </div>
+    </div>
+
+    <!-- Admin Layout: Left White Sidebar + Analytical Cards -->
+    <div class="purple-admin-container">
+      
+      <!-- Left-hand Clean White Sidebar -->
+      <aside class="purple-admin-sidebar">
+        <div class="purple-brand-badge">
+          <div class="purple-logo-box">P</div>
+          <div>
+            <div class="purple-brand-title">Purple Suite</div>
+            <div class="purple-brand-sub">Enterprise Edition</div>
+          </div>
+        </div>
+
+        <div class="purple-nav-section-title">Navigation</div>
+        <a href="#" class="purple-nav-link active">
+          <div class="purple-nav-item-left">
+            <span>📊</span>
+            <span>Dashboard Overview</span>
+          </div>
+          <span class="purple-pill-badge">Live</span>
+        </a>
+        <a href="#" class="purple-nav-link">
+          <div class="purple-nav-item-left">
+            <span>💼</span>
+            <span>Corporate Placements</span>
+          </div>
+          <span style="font-size: 0.72rem; color: #64748B; font-weight: 700;">1,284</span>
+        </a>
+        <a href="#" class="purple-nav-link">
+          <div class="purple-nav-item-left">
+            <span>🎯</span>
+            <span>Skill Audits &amp; Labs</span>
+          </div>
+        </a>
+        <a href="#" class="purple-nav-link">
+          <div class="purple-nav-item-left">
+            <span>🏛️</span>
+            <span>Board of Studies (BoS)</span>
+          </div>
+          <span class="purple-pill-badge" style="background: rgba(160, 90, 255, 0.14); color: #7928CA;">3 Queued</span>
+        </a>
+
+        <div class="purple-nav-section-title">Corporate Network</div>
+        <a href="#" class="purple-nav-link">
+          <div class="purple-nav-item-left">
+            <span>🏢</span>
+            <span>Tier 1 MOUs</span>
+          </div>
+          <span style="font-size: 0.72rem; color: #64748B; font-weight: 700;">28</span>
+        </a>
+        <a href="#" class="purple-nav-link">
+          <div class="purple-nav-item-left">
+            <span>📈</span>
+            <span>Market Tech Trends</span>
+          </div>
+        </a>
+        <a href="#" class="purple-nav-link">
+          <div class="purple-nav-item-left">
+            <span>⚙️</span>
+            <span>System Preferences</span>
+          </div>
+        </a>
+
+        <!-- System Status Box -->
+        <div style="margin-top: 30px; padding: 16px; background: #F8FAFC; border: 1px solid #EEF2F6; border-radius: 12px;">
+          <div style="font-size: 0.76rem; font-weight: 800; color: #111827; margin-bottom: 6px;">Evaluation Engine</div>
+          <div style="font-size: 0.72rem; color: #4B5563; line-height: 1.4; margin-bottom: 8px;">
+            60-30-10 multi-axis vectors live across 14 hiring partners.
+          </div>
+          <div style="font-size: 0.7rem; color: #10B981; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+            <span style="width: 8px; height: 8px; background: #10B981; border-radius: 50%; display: inline-block;"></span>
+            Operating at 100% SLA
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Workspace -->
+      <div class="purple-admin-content">
+        
+        <!-- 1. Three Vibrant Metric Blocks with Smooth Pastel Gradients -->
+        <section class="purple-metrics-triad">
+          <!-- Block 1: Orange-to-Pink Gradient -->
+          <div class="purple-metric-block orange-pink">
+            <div>
+              <div class="purple-metric-header">
+                <span class="purple-metric-label">Offers Generated</span>
+                <div class="purple-metric-icon">💼</div>
+              </div>
+              <div class="purple-metric-value-row">
+                <span class="purple-metric-value">1,284</span>
+                <span class="purple-metric-badge">↑ +18.4%</span>
+              </div>
+            </div>
+            <div class="purple-metric-desc">Tier-1 corporate offers across Google, Amazon, Microsoft &amp; Cisco.</div>
+          </div>
+
+          <!-- Block 2: Deep Blue-to-Light Blue Gradient -->
+          <div class="purple-metric-block blue-gradient">
+            <div>
+              <div class="purple-metric-header">
+                <span class="purple-metric-label">Industry Skill Alignment</span>
+                <div class="purple-metric-icon">🎯</div>
+              </div>
+              <div class="purple-metric-value-row">
+                <span class="purple-metric-value">94.2%</span>
+                <span class="purple-metric-badge">↑ +6.2%</span>
+              </div>
+            </div>
+            <div class="purple-metric-desc">Autonomous syllabus alignment against verified industry hiring requirements.</div>
+          </div>
+
+          <!-- Block 3: Emerald-to-Mint Green Gradient -->
+          <div class="purple-metric-block emerald-mint">
+            <div>
+              <div class="purple-metric-header">
+                <span class="purple-metric-label">Curriculum-Market Readiness</span>
+                <div class="purple-metric-icon">⚡</div>
+              </div>
+              <div class="purple-metric-value-row">
+                <span class="purple-metric-value">88.7%</span>
+                <span class="purple-metric-badge">Benchmark Met</span>
+              </div>
+            </div>
+            <div class="purple-metric-desc">7th Semester CSE &amp; IT cohorts exceeding core tech stack thresholds.</div>
+          </div>
+        </section>
+
+        <!-- 2. Detailed Bar Charts & Colorful Donut Chart -->
+        <section class="purple-charts-grid">
+          <!-- Left: Detailed Bar Chart Card -->
+          <div class="purple-card">
+            <div class="purple-card-header">
+              <div>
+                <div class="purple-card-title">
+                  <span>📊</span> Monthly Placement Velocity &amp; Target
+                </div>
+                <div class="purple-card-subtitle">
+                  Comparing corporate target benchmarks against verified student attainment
+                </div>
+              </div>
+              <div class="purple-chart-legend">
+                <div class="purple-legend-item">
+                  <span class="purple-legend-dot purple"></span>
+                  <span>Actual Attainment (#A05AFF)</span>
+                </div>
+                <div class="purple-legend-item">
+                  <span class="purple-legend-dot teal"></span>
+                  <span>Target Benchmark (#1BCFB4)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bar Chart Display -->
+            <div class="purple-bar-chart-wrap">
+              <div id="standalone-bar-container" class="purple-bar-chart-bars">
+                <!-- Dynamically populated below -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Colorful Donut Chart Card -->
+          <div class="purple-card">
+            <div class="purple-card-header">
+              <div>
+                <div class="purple-card-title">
+                  <span>🍩</span> Domain Mastery Allocation
+                </div>
+                <div class="purple-card-subtitle">
+                  Distribution of verified competencies across key tech stacks
+                </div>
+              </div>
+            </div>
+
+            <!-- Donut Chart Display -->
+            <div class="purple-donut-wrap">
+              <div id="standalone-donut-box" class="purple-donut-svg-box">
+                <!-- SVG injected below -->
+              </div>
+              <div class="purple-donut-center-stat">
+                <div class="purple-donut-center-num">94%</div>
+                <div class="purple-donut-center-label">Avg Readiness</div>
+              </div>
+
+              <!-- Legend Breakdown -->
+              <div class="purple-donut-stats-list">
+                <div class="purple-donut-stat-item">
+                  <div class="purple-stat-left">
+                    <span class="purple-legend-dot purple"></span>
+                    <span class="purple-stat-title">Full Stack Arch</span>
+                  </div>
+                  <span class="purple-stat-pct">42%</span>
+                </div>
+                <div class="purple-donut-stat-item">
+                  <div class="purple-stat-left">
+                    <span class="purple-legend-dot teal"></span>
+                    <span class="purple-stat-title">Cloud &amp; DevOps</span>
+                  </div>
+                  <span class="purple-stat-pct">28%</span>
+                </div>
+                <div class="purple-donut-stat-item">
+                  <div class="purple-stat-left">
+                    <span class="purple-legend-dot coral"></span>
+                    <span class="purple-stat-title">AI &amp; Data ML</span>
+                  </div>
+                  <span class="purple-stat-pct">18%</span>
+                </div>
+                <div class="purple-donut-stat-item">
+                  <div class="purple-stat-left">
+                    <span class="purple-legend-dot blue"></span>
+                    <span class="purple-stat-title">Systems &amp; Cyber</span>
+                  </div>
+                  <span class="purple-stat-pct">12%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Recent Corporate Skill Alignment & Placement Audit Table -->
+        <section class="purple-card">
+          <div class="purple-card-header">
+            <div>
+              <div class="purple-card-title">
+                <span>📑</span> Verified Candidate Cohorts &amp; Corporate Alignment Telemetry
+              </div>
+              <div class="purple-card-subtitle">
+                Real-time telemetry showing verified students aligned with company role criteria
+              </div>
+            </div>
+            <span class="purple-pill-badge" style="background: rgba(160, 90, 255, 0.1); color: #A05AFF; font-size: 0.74rem; padding: 4px 12px;">
+              Live Verification Feed
+            </span>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="purple-table">
+              <thead>
+                <tr>
+                  <th>Candidate</th>
+                  <th>College Branch</th>
+                  <th>Target Enterprise</th>
+                  <th>Verified Index</th>
+                  <th>Specialization</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div style="font-weight: 700; color: #111827;">Hariprasad PS</div>
+                    <div style="font-size: 0.72rem; color: #64748B;">USN: 1ST22CS084</div>
+                  </td>
+                  <td>B.Tech CSE (Sem 7)</td>
+                  <td><strong>Amazon Web Services</strong></td>
+                  <td>
+                    <span style="font-family: 'Plus Jakarta Sans'; font-weight: 800; color: #0D9488;">92.4%</span>
+                  </td>
+                  <td>Cloud &amp; Distributed Systems</td>
+                  <td>
+                    <span class="purple-badge-soft teal">✓ Tier 1 Qualified</span>
+                  </td>
+                  <td>
+                    <button class="btn-action-sm" onclick="alert('Viewing Hariprasad PS audit telemetry');" style="padding: 4px 12px; font-size: 0.72rem; background: #A05AFF; color: #FFFFFF; border: none; border-radius: 9999px; cursor: pointer;">
+                      Inspect Profile
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div style="font-weight: 700; color: #111827;">Ananya Sharma</div>
+                    <div style="font-size: 0.72rem; color: #64748B;">USN: 1ST22CS019</div>
+                  </td>
+                  <td>B.Tech CSE (Sem 7)</td>
+                  <td><strong>Google India</strong></td>
+                  <td>
+                    <span style="font-family: 'Plus Jakarta Sans'; font-weight: 800; color: #7928CA;">96.8%</span>
+                  </td>
+                  <td>Full Stack &amp; Algorithms</td>
+                  <td>
+                    <span class="purple-badge-soft purple">★ Direct Interview</span>
+                  </td>
+                  <td>
+                    <button class="btn-action-sm" onclick="alert('Viewing Ananya Sharma offer breakdown');" style="padding: 4px 12px; font-size: 0.72rem; background: #A05AFF; color: #FFFFFF; border: none; border-radius: 9999px; cursor: pointer;">
+                      View Offer
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div style="font-weight: 700; color: #111827;">Rohan Verma</div>
+                    <div style="font-size: 0.72rem; color: #64748B;">USN: 1ST22IS042</div>
+                  </td>
+                  <td>B.Tech ISE (Sem 7)</td>
+                  <td><strong>Microsoft IDC</strong></td>
+                  <td>
+                    <span style="font-family: 'Plus Jakarta Sans'; font-weight: 800; color: #B45309;">84.5%</span>
+                  </td>
+                  <td>DevOps &amp; Containerization</td>
+                  <td>
+                    <span class="purple-badge-soft orange">⚡ Gap Bridging</span>
+                  </td>
+                  <td>
+                    <button class="btn-action-sm" onclick="alert('Opening active gap resolution lab');" style="padding: 4px 12px; font-size: 0.72rem; background: #A05AFF; color: #FFFFFF; border: none; border-radius: 9999px; cursor: pointer;">
+                      Audit Lab
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div style="font-weight: 700; color: #111827;">Sneha Kulkarni</div>
+                    <div style="font-size: 0.72rem; color: #64748B;">USN: 1ST22CS112</div>
+                  </td>
+                  <td>B.Tech CSE (Sem 7)</td>
+                  <td><strong>Cisco Systems</strong></td>
+                  <td>
+                    <span style="font-family: 'Plus Jakarta Sans'; font-weight: 800; color: #0D9488;">89.1%</span>
+                  </td>
+                  <td>Network Security &amp; Linux</td>
+                  <td>
+                    <span class="purple-badge-soft teal">✓ Tier 1 Qualified</span>
+                  </td>
+                  <td>
+                    <button class="btn-action-sm" onclick="alert('Viewing Sneha Kulkarni telemetry');" style="padding: 4px 12px; font-size: 0.72rem; background: #A05AFF; color: #FFFFFF; border: none; border-radius: 9999px; cursor: pointer;">
+                      Inspect Profile
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 1. Populate Bar Chart
+      const barContainer = document.getElementById('standalone-bar-container');
+      if (barContainer) {
+        const data = [
+          { month: 'Jan', target: 55, actual: 48 },
+          { month: 'Feb', target: 65, actual: 62 },
+          { month: 'Mar', target: 70, actual: 76 },
+          { month: 'Apr', target: 80, actual: 85 },
+          { month: 'May', target: 82, actual: 90 },
+          { month: 'Jun', target: 88, actual: 94 },
+          { month: 'Jul', target: 95, actual: 92 }
+        ];
+
+        barContainer.innerHTML = data.map(d => `
+          <div class="purple-bar-group">
+            <div class="purple-bars-pair">
+              <div class="purple-bar primary" style="height: ${Math.round(d.actual * 1.6)}px;" title="${d.month} Actual Attainment: ${d.actual}%"></div>
+              <div class="purple-bar secondary" style="height: ${Math.round(d.target * 1.6)}px;" title="${d.month} Target Benchmark: ${d.target}%"></div>
+            </div>
+            <span class="purple-bar-label">${d.month}</span>
+          </div>
+        `).join('');
+      }
+
+      // 2. Populate Donut Chart SVG
+      const donutBox = document.getElementById('standalone-donut-box');
+      if (donutBox) {
+        const radius = 64;
+        const circ = 2 * Math.PI * radius; // ~402.12
+        const s1 = 0.42 * circ;
+        const s2 = 0.28 * circ;
+        const s3 = 0.18 * circ;
+        const s4 = 0.12 * circ;
+
+        donutBox.innerHTML = `
+          <svg viewBox="0 0 160 160" width="180" height="180" style="transform: rotate(-90deg);">
+            <!-- Background Track -->
+            <circle cx="80" cy="80" r="${radius}" fill="none" stroke="#F1F5F9" stroke-width="22" />
+            <!-- Slice 1: FullStack (#A05AFF - 42%) -->
+            <circle cx="80" cy="80" r="${radius}" fill="none" stroke="#A05AFF" stroke-width="22"
+              stroke-dasharray="${s1} ${circ - s1}" stroke-dashoffset="0" stroke-linecap="round" />
+            <!-- Slice 2: DevOps (#1BCFB4 - 28%) -->
+            <circle cx="80" cy="80" r="${radius}" fill="none" stroke="#1BCFB4" stroke-width="22"
+              stroke-dasharray="${s2} ${circ - s2}" stroke-dashoffset="-${s1}" stroke-linecap="round" />
+            <!-- Slice 3: AI/Data (#FF7675 - 18%) -->
+            <circle cx="80" cy="80" r="${radius}" fill="none" stroke="#FF7675" stroke-width="22"
+              stroke-dasharray="${s3} ${circ - s3}" stroke-dashoffset="-${s1 + s2}" stroke-linecap="round" />
+            <!-- Slice 4: Cloud/Security (#38B6FF - 12%) -->
+            <circle cx="80" cy="80" r="${radius}" fill="none" stroke="#38B6FF" stroke-width="22"
+              stroke-dasharray="${s4} ${circ - s4}" stroke-dashoffset="-${s1 + s2 + s3}" stroke-linecap="round" />
+          </svg>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

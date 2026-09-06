@@ -1754,10 +1754,115 @@
   }
 
   // ---------------------------------------------------------------------------
+  // "PURPLE" LIGHT MODE ADMIN DASHBOARD CHARTS (Dual-Series Bar Chart & SVG Donut)
+  // ---------------------------------------------------------------------------
+
+  function renderPurpleAdminCharts() {
+    // 1. Dual-Series Bar Chart (Target vs Actual Placement Velocity)
+    const barContainer = document.getElementById('purple-bar-chart-container');
+    if (barContainer) {
+      const data = [
+        { month: 'Jan', target: 55, actual: 48 },
+        { month: 'Feb', target: 65, actual: 62 },
+        { month: 'Mar', target: 70, actual: 76 },
+        { month: 'Apr', target: 80, actual: 85 },
+        { month: 'May', target: 82, actual: 90 },
+        { month: 'Jun', target: 88, actual: 94 },
+        { month: 'Jul', target: 95, actual: 92 }
+      ];
+
+      barContainer.innerHTML = data.map(d => `
+        <div class="purple-bar-group">
+          <div class="purple-bars-pair">
+            <div class="purple-bar primary" style="height: ${Math.round(d.actual * 1.6)}px;" title="${d.month} Actual Attainment: ${d.actual}%"></div>
+            <div class="purple-bar secondary" style="height: ${Math.round(d.target * 1.6)}px;" title="${d.month} Target Benchmark: ${d.target}%"></div>
+          </div>
+          <span class="purple-bar-label">${d.month}</span>
+        </div>
+      `).join('');
+    }
+
+    // 2. Colorful Donut Chart SVG (Domain Mastery Allocation)
+    const donutBox = document.getElementById('purple-donut-svg-box');
+    if (donutBox) {
+      const radius = 64;
+      const circ = 2 * Math.PI * radius; // ~402.12
+      // Slices: FullStack (42%), DevOps (28%), AI/ML (18%), Cyber (12%)
+      const s1 = 0.42 * circ;
+      const s2 = 0.28 * circ;
+      const s3 = 0.18 * circ;
+      const s4 = 0.12 * circ;
+
+      donutBox.innerHTML = `
+        <svg viewBox="0 0 160 160" width="180" height="180" style="transform: rotate(-90deg);">
+          <!-- Background Track -->
+          <circle cx="80" cy="80" r="${radius}" fill="none" stroke="#F1F5F9" stroke-width="22" />
+          <!-- Slice 1: FullStack (#A05AFF - 42%) -->
+          <circle cx="80" cy="80" r="${radius}" fill="none" stroke="#A05AFF" stroke-width="22"
+            stroke-dasharray="${s1} ${circ - s1}" stroke-dashoffset="0" stroke-linecap="round" />
+          <!-- Slice 2: DevOps (#1BCFB4 - 28%) -->
+          <circle cx="80" cy="80" r="${radius}" fill="none" stroke="#1BCFB4" stroke-width="22"
+            stroke-dasharray="${s2} ${circ - s2}" stroke-dashoffset="-${s1}" stroke-linecap="round" />
+          <!-- Slice 3: AI/Data (#FF7675 - 18%) -->
+          <circle cx="80" cy="80" r="${radius}" fill="none" stroke="#FF7675" stroke-width="22"
+            stroke-dasharray="${s3} ${circ - s3}" stroke-dashoffset="-${s1 + s2}" stroke-linecap="round" />
+          <!-- Slice 4: Cloud/Security (#38B6FF - 12%) -->
+          <circle cx="80" cy="80" r="${radius}" fill="none" stroke="#38B6FF" stroke-width="22"
+            stroke-dasharray="${s4} ${circ - s4}" stroke-dashoffset="-${s1 + s2 + s3}" stroke-linecap="round" />
+        </svg>
+      `;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // 10. GLOBAL CONTROLLER INTERFACE (SkillBridge Object)
   // ---------------------------------------------------------------------------
 
   window.SkillBridge = {
+    // Optional Theme Mode Controller (Obsidian Dark vs Purple Light)
+    switchTheme: function (theme) {
+      const activeTheme = (theme === 'purple-light') ? 'purple-light' : 'dark';
+      if (activeTheme === 'purple-light') {
+        document.documentElement.setAttribute('data-theme', 'purple-light');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+      try {
+        localStorage.setItem('skillbridge_theme', activeTheme);
+      } catch (e) {}
+
+      document.querySelectorAll('.theme-pill').forEach(btn => {
+        const choice = btn.getAttribute('data-theme-choice');
+        btn.classList.toggle('active', choice === activeTheme);
+      });
+
+      const label = (activeTheme === 'purple-light') 
+        ? '☀️ "Purple" Light Mode (#F4F5F7 & Spacious White)' 
+        : '🌙 Obsidian Dark Mode (#09090B)';
+      showToast(`Interface Theme: ${label}`, 'info');
+
+      if (state && state.selectedCompanyId) {
+        renderRadarChart(state.selectedCompanyId);
+      }
+      renderPurpleAdminCharts();
+    },
+
+    initTheme: function () {
+      let saved = 'dark';
+      try {
+        saved = localStorage.getItem('skillbridge_theme') || 'dark';
+      } catch (e) {}
+      if (saved === 'purple-light') {
+        document.documentElement.setAttribute('data-theme', 'purple-light');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+      document.querySelectorAll('.theme-pill').forEach(btn => {
+        const choice = btn.getAttribute('data-theme-choice');
+        btn.classList.toggle('active', choice === saved);
+      });
+    },
+
     // Ultra-Modern Obsidian Neon Accent Controller (Mint, Violet, Cyan)
     switchAccent: function (accent) {
       let activeAccent = 'mint';
@@ -1830,10 +1935,14 @@
         renderSyllabusProposals();
         renderFacultyCollaboration();
         renderFacultyFDPs();
+      } else if (perspective === 'admin') {
+        renderPurpleAdminCharts();
       }
 
       showToast(`Switched view to ${perspective.toUpperCase()} Portal.`, 'info');
     },
+
+    renderPurpleAdminCharts: renderPurpleAdminCharts,
 
     // Student System Tab Switcher
     switchSystemTab: function (tab) {
@@ -2069,6 +2178,8 @@
     renderFacultyCollaboration();
     renderFacultyFDPs();
     window.SkillBridge.initAccent();
+    window.SkillBridge.initTheme();
+    renderPurpleAdminCharts();
 
     const searchInput = document.getElementById('search-company-input');
     if (searchInput) {

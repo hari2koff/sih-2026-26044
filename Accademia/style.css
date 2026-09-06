@@ -1,4 +1,4 @@
-﻿* {
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -24,6 +24,77 @@
     --orange: #f59e0b;
     --red: #f43f5e;
     --purple: #8b5cf6;
+}
+
+[data-theme="purple-light"] {
+    --primary: #a05aff;
+    --primary-text: #ffffff;
+    --primary-dark: #8234e8;
+    --accent-glow: rgba(160, 90, 255, 0.35);
+    
+    --background: #f4f5f7;
+    --card: #ffffff;
+    --card-solid: #f8f9fb;
+    --card-hover: #ffffff;
+    
+    --text: #111827;
+    --muted: #64748b;
+    --border: #e5e7eb;
+    --border-highlight: #d1d5db;
+    
+    --green: #10b981;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --purple: #a05aff;
+}
+
+[data-theme="purple-light"] .sidebar {
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+}
+
+[data-theme="purple-light"] .card,
+[data-theme="purple-light"] .stat-card,
+[data-theme="purple-light"] .opportunity-card,
+[data-theme="purple-light"] .collaboration-card,
+[data-theme="purple-light"] .training-card,
+[data-theme="purple-light"] .report-card,
+[data-theme="purple-light"] .welcome {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 20px -2px rgba(16, 24, 40, 0.05);
+}
+
+[data-theme="purple-light"] .welcome {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fb 100%);
+}
+
+[data-theme="purple-light"] .header {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+[data-theme="purple-light"] .search-bar {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+}
+
+[data-theme="purple-light"] .search-bar input {
+    color: #111827;
+}
+
+[data-theme="purple-light"] .search-bar select {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    color: #111827;
+}
+
+[data-theme="purple-light"] th, [data-theme="purple-light"] td {
+    border-bottom: 1px solid #e5e7eb;
+    color: #111827;
+}
+
+[data-theme="purple-light"] th {
+    color: #64748b;
 }
 
 body {
