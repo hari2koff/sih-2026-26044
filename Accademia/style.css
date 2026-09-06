@@ -53,6 +53,14 @@
     border-right: 1px solid #e5e7eb;
 }
 
+[data-theme="purple-light"] .logo-dark-theme {
+    display: none !important;
+}
+
+[data-theme="purple-light"] .logo-light-theme {
+    display: block !important;
+}
+
 [data-theme="purple-light"] .card,
 [data-theme="purple-light"] .stat-card,
 [data-theme="purple-light"] .opportunity-card,

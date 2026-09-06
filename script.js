@@ -1836,6 +1836,17 @@
         btn.classList.toggle('active', choice === activeTheme);
       });
 
+      // Update favicon and touch icons based on theme
+      const currentIcon = (activeTheme === 'purple-light') ? 'logo-light.jpg' : 'logo-dark.jpg';
+      const faviconLink = document.querySelector('link[rel="icon"]');
+      if (faviconLink) {
+        faviconLink.href = currentIcon;
+      }
+      const touchIconLink = document.querySelector('link[rel="apple-touch-icon"]');
+      if (touchIconLink) {
+        touchIconLink.href = currentIcon;
+      }
+
       const label = (activeTheme === 'purple-light') 
         ? '☀️ "Purple" Light Mode (#F4F5F7 & Spacious White)' 
         : '🌙 Obsidian Dark Mode (#09090B)';
@@ -1857,6 +1868,17 @@
       } else {
         document.documentElement.removeAttribute('data-theme');
       }
+
+      const initialIcon = (saved === 'purple-light') ? 'logo-light.jpg' : 'logo-dark.jpg';
+      const faviconLink = document.querySelector('link[rel="icon"]');
+      if (faviconLink) {
+        faviconLink.href = initialIcon;
+      }
+      const touchIconLink = document.querySelector('link[rel="apple-touch-icon"]');
+      if (touchIconLink) {
+        touchIconLink.href = initialIcon;
+      }
+
       document.querySelectorAll('.theme-pill').forEach(btn => {
         const choice = btn.getAttribute('data-theme-choice');
         btn.classList.toggle('active', choice === saved);

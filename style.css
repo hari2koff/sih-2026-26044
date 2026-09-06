@@ -235,6 +235,27 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 }
 
+[data-theme="purple-light"] .logo-dark-theme {
+  display: none !important;
+}
+
+[data-theme="purple-light"] .logo-light-theme {
+  display: block !important;
+}
+
+[data-theme="purple-light"] .brand-logo-icon {
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+}
+
+[data-theme="purple-light"] .brand-text h1 {
+  color: #0f172a;
+}
+
+[data-theme="purple-light"] .brand-text h1 span {
+  color: #ff6b35;
+}
+
 [data-theme="purple-light"] .perspective-control {
   background: #f1f3f6;
   border: 1px solid #e2e8f0;
@@ -561,6 +582,14 @@ body {
   border-radius: var(--radius-md);
 }
 
+.logo-light-theme {
+  display: none;
+}
+
+.logo-dark-theme {
+  display: block;
+}
+
 .brand-text h1 {
   font-family: var(--font-heading);
   font-size: 1.35rem;
@@ -573,7 +602,7 @@ body {
 }
 
 .brand-text h1 span {
-  color: var(--accent);
+  color: #ff8e53;
   transition: color var(--transition-fast);
 }
 
