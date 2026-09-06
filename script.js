@@ -101,7 +101,7 @@
         id: 'datacore',
         name: 'DataCore Technologies',
         brandLetter: 'DC',
-        brandColor: 'linear-gradient(135deg, #06b6d4, #0891b2)',
+        brandColor: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
         roleTitle: 'Data Systems & AI Associate',
         location: 'Hyderabad / On-site',
         stipend: '₹50,000 / mo',
@@ -688,7 +688,7 @@
         const pt = getCoords(ratio, a.angle);
         return `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`;
       }).join(' ');
-      gridPolygons += `<polygon points="${points}" fill="none" stroke="#e2e8f0" stroke-width="1.2" />`;
+      gridPolygons += `<polygon points="${points}" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1.2" />`;
     });
 
     let axisElements = '';
@@ -696,8 +696,8 @@
       const end = getCoords(1.0, a.angle);
       const labelPos = getCoords(1.22, a.angle);
       axisElements += `
-        <line x1="${center}" y1="${center}" x2="${end.x.toFixed(1)}" y2="${end.y.toFixed(1)}" stroke="#cbd5e1" stroke-width="1" />
-        <text x="${labelPos.x.toFixed(1)}" y="${labelPos.y.toFixed(1)}" font-size="10" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" fill="#64748b" text-anchor="middle" dominant-baseline="middle">
+        <line x1="${center}" y1="${center}" x2="${end.x.toFixed(1)}" y2="${end.y.toFixed(1)}" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1" />
+        <text x="${labelPos.x.toFixed(1)}" y="${labelPos.y.toFixed(1)}" font-size="10" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" fill="#a1a1aa" text-anchor="middle" dominant-baseline="middle">
           ${a.label}
         </text>
       `;
@@ -719,15 +719,15 @@
     axes.forEach(a => {
       const score = state.student.radarScores[a.key] || 50;
       const pt = getCoords(score / 100, a.angle);
-      studentVertices += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="3.5" fill="#2563eb" stroke="#ffffff" stroke-width="1.5" />`;
+      studentVertices += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="4" fill="var(--primary)" stroke="#09090b" stroke-width="1.8" />`;
     });
 
     const svg = `
       <svg class="radar-svg" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         ${gridPolygons}
         ${axisElements}
-        <polygon points="${companyPoints}" fill="rgba(239, 68, 68, 0.12)" stroke="#ef4444" stroke-width="2" stroke-dasharray="4 3" />
-        <polygon points="${studentPoints}" fill="rgba(37, 99, 235, 0.28)" stroke="#2563eb" stroke-width="2.5" />
+        <polygon points="${companyPoints}" fill="rgba(244, 63, 94, 0.15)" stroke="#f43f5e" stroke-width="2" stroke-dasharray="4 3" />
+        <polygon points="${studentPoints}" fill="var(--accent-subtle)" stroke="var(--primary)" stroke-width="2.5" />
         ${studentVertices}
       </svg>
     `;
@@ -1004,7 +1004,7 @@
       <div class="roadmap-card">
         <div class="roadmap-header">
           <div class="roadmap-author-badge">
-            <div class="company-avatar-sm" style="background: #06b6d4;">DC</div>
+            <div class="company-avatar-sm" style="background: #0ea5e9;">DC</div>
             <div>
               <h3 style="font-size: 1.05rem; font-weight: 700;">DataCore Vector Systems & Semantic Search Track</h3>
               <p style="font-size: 0.78rem; color: #64748b;">Curated by DataCore AI Research Division • Closing Batch Deficits</p>
@@ -1102,7 +1102,7 @@
       </div>
 
       <div class="mentor-card">
-        <div class="mentor-avatar" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">VS</div>
+        <div class="mentor-avatar" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">VS</div>
         <h4>Venkatesh S.</h4>
         <div class="mentor-role">Principal Systems Engineer @ Zoho Corp</div>
         <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 14px;">Focuses on core algorithms, high-throughput database systems, and product engineering mindsets.</p>
@@ -1314,7 +1314,7 @@
             🏢 Demand: ${t.recruiterCount}
           </div>
 
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 16px;">
+          <div style="background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
               <span style="font-size: 0.72rem; font-weight: 700; color: #64748b;">College Syllabus Coverage:</span>
               <span class="syllabus-status-tag ${t.syllabusStatusClass}">${t.syllabusStatus}</span>
@@ -1492,7 +1492,7 @@
           <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 4px;">
             <strong>Dates:</strong> ${f.date} • <strong>Mode:</strong> ${f.mode}
           </div>
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin: 12px 0;">
+          <div style="background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin: 12px 0;">
             <div style="font-size: 0.72rem; font-weight: 700; color: #0f172a; margin-bottom: 2px;">Faculty Benefits:</div>
             <div style="font-size: 0.75rem; color: #64748b;">${f.benefits}</div>
           </div>
@@ -1758,6 +1758,56 @@
   // ---------------------------------------------------------------------------
 
   window.SkillBridge = {
+    // Ultra-Modern Obsidian Neon Accent Controller (Mint, Violet, Cyan)
+    switchAccent: function (accent) {
+      let activeAccent = 'mint';
+      if (accent === 'violet' || accent === 'purple') {
+        activeAccent = 'violet';
+      } else if (accent === 'cyan' || accent === 'blue') {
+        activeAccent = 'cyan';
+      } else {
+        activeAccent = 'mint';
+      }
+      document.documentElement.setAttribute('data-accent', activeAccent);
+      try {
+        localStorage.setItem('skillbridge_accent', activeAccent);
+      } catch (e) {}
+
+      document.querySelectorAll('.accent-pill').forEach(btn => {
+        const choice = btn.getAttribute('data-accent-choice');
+        btn.classList.toggle('active', choice === activeAccent);
+      });
+
+      const label = (activeAccent === 'mint') ? '⚡ Cyber Neon Mint (#00F5A0)' : 
+                    (activeAccent === 'violet') ? '🔮 Ultra Electric Violet (#8B5CF6)' : 
+                    '💎 Hyper Cyan (#00E5FF)';
+      showToast(`Accent palette active: ${label}`, 'info');
+
+      if (state && state.selectedCompanyId) {
+        renderRadarChart(state.selectedCompanyId);
+      }
+    },
+
+    initAccent: function () {
+      let saved = 'mint';
+      try {
+        saved = localStorage.getItem('skillbridge_accent') || 'mint';
+      } catch (e) {}
+      let activeAccent = 'mint';
+      if (saved === 'violet' || saved === 'purple') {
+        activeAccent = 'violet';
+      } else if (saved === 'cyan' || saved === 'blue') {
+        activeAccent = 'cyan';
+      } else {
+        activeAccent = 'mint';
+      }
+      document.documentElement.setAttribute('data-accent', activeAccent);
+      document.querySelectorAll('.accent-pill').forEach(btn => {
+        const choice = btn.getAttribute('data-accent-choice');
+        btn.classList.toggle('active', choice === activeAccent);
+      });
+    },
+
     // Perspective switcher
     switchPerspective: function (perspective) {
       state.activePerspective = perspective;
@@ -2018,6 +2068,7 @@
     renderSyllabusProposals();
     renderFacultyCollaboration();
     renderFacultyFDPs();
+    window.SkillBridge.initAccent();
 
     const searchInput = document.getElementById('search-company-input');
     if (searchInput) {

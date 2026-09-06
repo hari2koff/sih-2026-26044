@@ -20,6 +20,12 @@
     <div class="banner-links">
       <span>Team: <strong>Tech Warriors</strong></span>
       <span>Status: <strong>Evaluation Prototype Live</strong></span>
+      <div class="accent-switcher-wrap" title="Toggle UI Neon Accent Mode">
+        <span class="accent-switcher-label">Accent:</span>
+        <button class="accent-pill active" data-accent-choice="mint" onclick="window.SkillBridge.switchAccent('mint')" title="Cyber Neon Mint (#00F5A0) Accent">⚡ Mint</button>
+        <button class="accent-pill" data-accent-choice="violet" onclick="window.SkillBridge.switchAccent('violet')" title="Ultra Electric Violet (#8B5CF6) Accent">🔮 Violet</button>
+        <button class="accent-pill" data-accent-choice="cyan" onclick="window.SkillBridge.switchAccent('cyan')" title="Hyper Cyan (#00E5FF) Accent">💎 Cyan</button>
+      </div>
     </div>
   </header>
 
@@ -684,12 +690,12 @@
       </div>
       <div class="modal-body">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;">
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+          <div style="background: var(--bg-app); border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
             <div style="font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Overall Readiness</div>
-            <div id="modal-student-readiness" style="font-family: var(--font-heading); font-size: 1.75rem; font-weight: 800; color: #2563eb;">78%</div>
+            <div id="modal-student-readiness" style="font-family: var(--font-heading); font-size: 1.75rem; font-weight: 800; color: var(--blue);">78%</div>
             <div style="font-size: 0.7rem; color: #22c55e;">↑ +6% progression this semester</div>
           </div>
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+          <div style="background: var(--bg-app); border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
             <div style="font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Target Recruiter &amp; Role</div>
             <div id="modal-student-target" style="font-size: 0.88rem; font-weight: 700; color: #0f172a; margin-top: 4px;">TechNova Solutions (Full Stack)</div>
             <div style="font-size: 0.7rem; color: #64748b;">Direct interview recommendation queue</div>
