@@ -794,8 +794,8 @@
 
     if (filtered.length === 0) {
       container.innerHTML = `
-        <div style="text-align: center; padding: 40px; background: #ffffff; border-radius: 12px; border: 1px dashed #cbd5e1;">
-          <p style="color: #64748b; font-weight: 600;">No company roles matched your current filter.</p>
+        <div style="text-align: center; padding: 40px; background: var(--bg-card); border-radius: 12px; border: 1px dashed var(--border-medium);">
+          <p style="color: var(--text-muted); font-weight: 600;">No company roles matched your current filter.</p>
           <button class="pill-filter-btn" style="margin-top: 10px;" onclick="window.SkillBridge.resetFilters()">Reset Filters</button>
         </div>
       `;
@@ -912,7 +912,7 @@
           <td>
             <span class="comp-type-pill ${g.type === 'Core' ? 'core' : 'elective'}">${g.type} ${g.weight}%</span>
           </td>
-          <td><strong style="color: #0f172a;">${g.req}%</strong></td>
+          <td><strong style="color: var(--text-main);">${g.req}%</strong></td>
           <td><span style="font-weight: 700; color: ${g.cur >= g.req ? '#22c55e' : '#ef4444'};">${g.cur}%</span></td>
           <td>
             <span class="trust-badge ${trustClass}" title="${g.evidence || ''}">
@@ -967,7 +967,7 @@
             <div class="company-avatar-sm" style="background: #2563eb;">TN</div>
             <div>
               <h3 style="font-size: 1.05rem; font-weight: 700;">TechNova Full Stack & Microservices Roadmap (2026 Batch)</h3>
-              <p style="font-size: 0.78rem; color: #64748b;">Curated by TechNova Senior Cloud Engineering Team • 4 Milestone Phases</p>
+              <p style="font-size: 0.78rem; color: var(--text-muted);">Curated by TechNova Senior Cloud Engineering Team • 4 Milestone Phases</p>
             </div>
           </div>
           <span class="severity-badge verified">Official Partner Roadmap</span>
@@ -986,9 +986,9 @@
             <div class="node-desc">PostgreSQL connection pooling, indexing, ACID transactions. Completed & Verified.</div>
           </div>
           
-          <div class="timeline-node" style="border-color: #ef4444; background: #fff1f2;">
+          <div class="timeline-node" style="border-color: #ef4444; background: rgba(239, 68, 68, 0.12);">
             <div class="node-number" style="background: #ef4444; color: #fff; border-color: #ef4444;">3</div>
-            <div class="node-title" style="color: #991b1b;">Phase 3: Docker & Microservices</div>
+            <div class="node-title" style="color: #f87171;">Phase 3: Docker & Microservices</div>
             <div class="node-desc"><strong>Active Skill Gap:</strong> Containerizing Node/React services, Docker Compose multi-containers.</div>
             <button class="btn-action-sm" style="margin-top: 10px;" onclick="window.SkillBridge.launchQuizTest('docker')">Take Test to Pass Phase 3</button>
           </div>
@@ -1007,7 +1007,7 @@
             <div class="company-avatar-sm" style="background: #0ea5e9;">DC</div>
             <div>
               <h3 style="font-size: 1.05rem; font-weight: 700;">DataCore Vector Systems & Semantic Search Track</h3>
-              <p style="font-size: 0.78rem; color: #64748b;">Curated by DataCore AI Research Division • Closing Batch Deficits</p>
+              <p style="font-size: 0.78rem; color: var(--text-muted);">Curated by DataCore AI Research Division • Closing Batch Deficits</p>
             </div>
           </div>
           <span class="severity-badge recommended">AI/ML Pathway</span>
@@ -1048,7 +1048,7 @@
         <div>
           <div class="lab-badge-row">
             <span class="severity-badge critical">Closing Critical Gap</span>
-            <span style="font-size: 0.72rem; color: #64748b;">2-Day Bootcamp</span>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">2-Day Bootcamp</span>
           </div>
           <div class="lab-title">Docker & Microservices Hands-on Virtual Sandbox</div>
           <div class="lab-meta">Arranged by College T&P Cell in collaboration with TechNova Solutions. Provides direct cloud CLI sandbox.</div>
@@ -1062,7 +1062,7 @@
         <div>
           <div class="lab-badge-row">
             <span class="severity-badge verified">Industry Endorsed</span>
-            <span style="font-size: 0.72rem; color: #64748b;">Self-Paced Sandbox</span>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Self-Paced Sandbox</span>
           </div>
           <div class="lab-title">AWS Solutions Architect Cloud Lab</div>
           <div class="lab-meta">Pre-configured Amazon EC2, VPC, and S3 environment for student practice with guided tasks.</div>
@@ -1076,7 +1076,7 @@
         <div>
           <div class="lab-badge-row">
             <span class="severity-badge recommended">College Elective</span>
-            <span style="font-size: 0.72rem; color: #64748b;">Scheduled Workshop</span>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Scheduled Workshop</span>
           </div>
           <div class="lab-title">Vector DBs & RAG Architecture Workshop</div>
           <div class="lab-meta">Interactive hands-on session hosted by DataCore AI engineers on Saturday, 10:00 AM.</div>
@@ -1097,7 +1097,7 @@
         <div class="mentor-avatar">AR</div>
         <h4>Ananya Roy</h4>
         <div class="mentor-role">Staff Cloud Architect @ TechNova Solutions</div>
-        <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 14px;">Specializes in container migration, Kubernetes orchestration, and technical interview preparation.</p>
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 14px;">Specializes in container migration, Kubernetes orchestration, and technical interview preparation.</p>
         <button class="btn-card-action" style="width: 100%;" onclick="window.SkillBridge.bookMentor('Ananya Roy')">Book 1:1 Skill Review Session</button>
       </div>
 
@@ -1105,7 +1105,7 @@
         <div class="mentor-avatar" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">VS</div>
         <h4>Venkatesh S.</h4>
         <div class="mentor-role">Principal Systems Engineer @ Zoho Corp</div>
-        <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 14px;">Focuses on core algorithms, high-throughput database systems, and product engineering mindsets.</p>
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 14px;">Focuses on core algorithms, high-throughput database systems, and product engineering mindsets.</p>
         <button class="btn-card-action" style="width: 100%;" onclick="window.SkillBridge.bookMentor('Venkatesh S.')">Book 1:1 Skill Review Session</button>
       </div>
 
@@ -1113,7 +1113,7 @@
         <div class="mentor-avatar" style="background: linear-gradient(135deg, #22c55e, #16a34a);">PM</div>
         <h4>Priyanka Menon</h4>
         <div class="mentor-role">Senior Machine Learning Scientist @ TCS Research</div>
-        <p style="font-size: 0.75rem; color: #64748b; margin-bottom: 14px;">Guides students on applied research, paper publications, and AI corporate problem solving.</p>
+        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 14px;">Guides students on applied research, paper publications, and AI corporate problem solving.</p>
         <button class="btn-card-action" style="width: 100%;" onclick="window.SkillBridge.bookMentor('Priyanka Menon')">Book 1:1 Skill Review Session</button>
       </div>
     `;
@@ -1144,8 +1144,8 @@
                 ${cand.name.split(' ').map(n => n[0]).join('')}
               </div>
               <div>
-                <strong style="color: #0f172a;">${cand.name}</strong>
-                <div style="font-size: 0.72rem; color: #64748b;">${cand.roll} • ${cand.gpa}</div>
+                <strong style="color: var(--text-main);">${cand.name}</strong>
+                <div style="font-size: 0.72rem; color: var(--text-muted);">${cand.roll} • ${cand.gpa}</div>
               </div>
             </div>
           </td>
@@ -1153,11 +1153,11 @@
             <span class="score-pill ${cand.tierClass}" style="font-size: 0.88rem; padding: 2px 10px;">
               ${matchScore}% Match
             </span>
-            <div style="font-size: 0.7rem; color: #64748b; margin-top: 2px;">${cand.tier}</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">${cand.tier}</div>
           </td>
           <td>
-            <div style="font-size: 0.78rem; font-weight: 600; color: #0f172a;">${cand.keyStrengths}</div>
-            <div style="font-size: 0.7rem; color: #ef4444;">Deficit: ${cand.gapAlert}</div>
+            <div style="font-size: 0.78rem; font-weight: 600; color: var(--text-main);">${cand.keyStrengths}</div>
+            <div style="font-size: 0.7rem; color: #f87171;">Deficit: ${cand.gapAlert}</div>
           </td>
           <td>
             <div style="display: flex; gap: 4px; flex-wrap: wrap;">
@@ -1201,7 +1201,7 @@
     if (filtered.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="7" style="text-align: center; padding: 32px; color: #64748b;">
+          <td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">
             No students found matching current filter or search criteria.
           </td>
         </tr>
@@ -1222,8 +1222,8 @@
                 ${s.name.split(' ').map(n => n[0]).join('')}
               </div>
               <div>
-                <strong style="color: #0f172a;">${s.name} ${isYou ? '<span style="color: #2563eb; font-size: 0.75rem;">(Active Demo)</span>' : ''}</strong>
-                <div style="font-size: 0.72rem; color: #64748b;">${s.roll} • ${s.branch}</div>
+                <strong style="color: var(--text-main);">${s.name} ${isYou ? '<span style="color: #38bdf8; font-size: 0.75rem;">(Active Demo)</span>' : ''}</strong>
+                <div style="font-size: 0.72rem; color: var(--text-muted);">${s.roll} • ${s.branch}</div>
               </div>
             </div>
           </td>
@@ -1307,19 +1307,19 @@
             <span class="surge-badge">${t.surge}</span>
           </div>
 
-          <h3 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; color: #0f172a; margin-bottom: 4px;">
+          <h3 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">
             ${t.title}
           </h3>
-          <div style="font-size: 0.75rem; color: #2563eb; font-weight: 600; margin-bottom: 12px;">
+          <div style="font-size: 0.75rem; color: var(--primary-bright, #38bdf8); font-weight: 600; margin-bottom: 12px;">
             🏢 Demand: ${t.recruiterCount}
           </div>
 
-          <div style="background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 16px;">
+          <div style="background: var(--bg-subtle); border: 1px solid var(--border-light); border-radius: 8px; padding: 10px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <span style="font-size: 0.72rem; font-weight: 700; color: #64748b;">College Syllabus Coverage:</span>
+              <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted);">College Syllabus Coverage:</span>
               <span class="syllabus-status-tag ${t.syllabusStatusClass}">${t.syllabusStatus}</span>
             </div>
-            <p style="font-size: 0.75rem; color: #64748b; line-height: 1.35;">${t.syllabusNote}</p>
+            <p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.35;">${t.syllabusNote}</p>
           </div>
         </div>
 
@@ -1343,14 +1343,14 @@
           <div style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; color: #2563eb;">
             ${p.id}
           </div>
-          <div style="font-size: 0.7rem; color: #64748b;">${p.date}</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted);">${p.date}</div>
         </td>
         <td>
-          <strong style="color: #0f172a; font-size: 0.85rem;">${p.title}</strong>
-          <div style="font-size: 0.72rem; color: #64748b;">Proposed to: <strong>${p.targetDean}</strong> by ${p.proposedBy}</div>
+          <strong style="color: var(--text-main); font-size: 0.85rem;">${p.title}</strong>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">Proposed to: <strong style="color: var(--text-main);">${p.targetDean}</strong> by ${p.proposedBy}</div>
         </td>
         <td>
-          <span style="font-size: 0.75rem; color: #ef4444; font-weight: 600;">${p.deficitStat}</span>
+          <span style="font-size: 0.75rem; color: #f87171; font-weight: 600;">${p.deficitStat}</span>
         </td>
         <td>
           <span class="proposal-status-badge ${p.statusClass}">
@@ -1417,13 +1417,13 @@
               <span class="severity-badge verified">${s.company}</span>
               <span class="grant-pill">${s.stipend}</span>
             </div>
-            <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 4px;">
+            <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">
               ${s.title}
             </h4>
-            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 8px;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">
               <strong>Duration:</strong> ${s.duration} • <strong>Location:</strong> ${s.location}
             </div>
-            <p style="font-size: 0.78rem; color: #475569; margin-bottom: 14px;">${s.focus}</p>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px;">${s.focus}</p>
           </div>
           <button class="btn-action-sm" style="width: 100%; justify-content: center;" onclick="window.SkillBridge.applyForSabbatical('${s.title}')">
             Apply for Faculty Sabbatical ↗
@@ -1440,13 +1440,13 @@
               <span class="severity-badge recommended">${c.code} • ${c.company}</span>
               <span class="grant-pill">${c.grant}</span>
             </div>
-            <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 4px;">
+            <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">
               ${c.title}
             </h4>
-            <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 8px;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">
               <strong>Timeline:</strong> ${c.timeline}
             </div>
-            <p style="font-size: 0.78rem; color: #475569; margin-bottom: 14px;">${c.description}</p>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px;">${c.description}</p>
           </div>
           <button class="btn-action-sm" style="width: 100%; justify-content: center;" onclick="window.SkillBridge.applyForConsulting('${c.title}')">
             Submit Consulting Proposal ↗
@@ -1457,17 +1457,17 @@
 
     if (rndContainer) {
       rndContainer.innerHTML = state.facultyCollaboration.jointResearch.map(r => `
-        <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 18px; box-shadow: var(--shadow-sm);">
+        <div style="background: var(--bg-card); border: 1.5px solid var(--border-light); border-radius: 12px; padding: 18px; box-shadow: var(--shadow-sm);">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-            <h4 style="font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; color: #0f172a;">${r.professor}</h4>
+            <h4 style="font-family: var(--font-heading); font-size: 0.95rem; font-weight: 700; color: var(--text-main);">${r.professor}</h4>
             <span class="severity-badge verified">Active Grant</span>
           </div>
-          <div style="font-size: 0.82rem; color: #334155; font-weight: 600; margin-bottom: 6px;">${r.project}</div>
-          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; border-top: 1px dashed #cbd5e1; padding-top: 8px; margin-top: 8px;">
+          <div style="font-size: 0.82rem; color: var(--text-main); font-weight: 600; margin-bottom: 6px;">${r.project}</div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 8px;">
             <span>Grant: <strong style="color: #22c55e;">${r.budget}</strong></span>
             <span>Duration: <strong>${r.duration}</strong></span>
           </div>
-          <div style="font-size: 0.72rem; color: #2563eb; margin-top: 6px;">🎯 Deliverable: ${r.deliverable}</div>
+          <div style="font-size: 0.72rem; color: var(--primary-bright, #38bdf8); margin-top: 6px;">🎯 Deliverable: ${r.deliverable}</div>
         </div>
       `).join('');
     }
@@ -1483,18 +1483,18 @@
         <div>
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
             <span class="severity-badge verified">${f.company}</span>
-            <span style="font-size: 0.7rem; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 2px 8px; border-radius: 9999px;">${f.badge}</span>
+            <span style="font-size: 0.7rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 2px 8px; border-radius: 9999px;">${f.badge}</span>
           </div>
 
-          <h3 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; color: #0f172a; margin-bottom: 6px;">
+          <h3 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
             ${f.title}
           </h3>
-          <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 4px;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">
             <strong>Dates:</strong> ${f.date} • <strong>Mode:</strong> ${f.mode}
           </div>
-          <div style="background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin: 12px 0;">
-            <div style="font-size: 0.72rem; font-weight: 700; color: #0f172a; margin-bottom: 2px;">Faculty Benefits:</div>
-            <div style="font-size: 0.75rem; color: #64748b;">${f.benefits}</div>
+          <div style="background: var(--bg-subtle); border: 1px solid var(--border-light); border-radius: 8px; padding: 10px; margin: 12px 0;">
+            <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-main); margin-bottom: 2px;">Faculty Benefits:</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">${f.benefits}</div>
           </div>
         </div>
 
@@ -1636,14 +1636,14 @@
           <tr>
             <td>
               <strong>${g.skill}</strong>
-              <div style="font-size: 0.68rem; color: #64748b;">${g.evidence || 'Evidence Pending'}</div>
+              <div style="font-size: 0.68rem; color: var(--text-muted);">${g.evidence || 'Evidence Pending'}</div>
             </td>
             <td><span class="comp-type-pill ${g.type === 'Core' ? 'core' : 'elective'}">${g.type}</span></td>
             <td><strong>${g.weight}%</strong></td>
             <td>${g.req}%</td>
             <td><span style="color: ${g.cur >= g.req ? '#22c55e' : '#ef4444'}; font-weight: 700;">${g.cur}%</span></td>
             <td><span class="trust-badge ${trustClass}">${trustLabel}</span></td>
-            <td style="text-align: right;"><strong style="color: #2563eb;">+${contrib.toFixed(1)}%</strong></td>
+            <td style="text-align: right;"><strong style="color: var(--primary-bright, #38bdf8);">+${contrib.toFixed(1)}%</strong></td>
           </tr>
         `;
       }).join('');
