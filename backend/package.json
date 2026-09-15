@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test/api_test.js"
+    "test": "node test/api_test.js",
+    "test:cors": "node test/cors_and_local_test.js",
+    "test:reg": "node test/registration_test.js"
   },
   "keywords": [
     "sih2026",

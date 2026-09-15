@@ -28,8 +28,29 @@ const learningRoutes = require('./routes/learningRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security & Parsing Middleware
-app.use(cors());
+// Robust CORS Configuration for local frontend & dev servers
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow all origins (localhost, 127.0.0.1, file://, dev servers)
+    callback(null, true);
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Origin',
+    'X-Requested-With',
+    'Content-Type',
+    'Accept',
+    'Authorization',
+    'x-demo-role',
+    'x-user-id'
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

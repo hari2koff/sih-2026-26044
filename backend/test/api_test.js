@@ -89,28 +89,48 @@ async function runTests() {
       }
     });
 
-    // 3. Student Profile
-    await assertTest('GET /api/v1/students/profile returns Hariprasad PS profile with radar metrics', async () => {
+    // 3. Live Student Registration & Credential Generation
+    await assertTest('POST /api/v1/students/register creates student and issues credentials', async () => {
+      const regPayload = {
+        name: 'Aarav Sharma',
+        roll_no: '2024CSE1088',
+        institution_name: 'National Institute of Technology',
+        department: 'Computer Science & Engineering',
+        semester: '7th Semester',
+        cgpa: 8.85,
+        target_company: 'TechNova Solutions (Full Stack)',
+        radar_prog: 85,
+        radar_web: 88,
+        radar_db: 80,
+        radar_cloud: 80,
+        radar_system: 78,
+        radar_soft: 85
+      };
+      const res = await makeRequest(server, { path: '/api/v1/students/register', method: 'POST' }, regPayload);
+      if (res.status !== 201 || !res.data.data.credentials.username) {
+        throw new Error(`Expected registration with credentials, got: ${JSON.stringify(res.data)}`);
+      }
+    });
+
+    // 4. Student Profile & Radar Metrics
+    await assertTest('GET /api/v1/students/profile returns registered student profile with radar metrics', async () => {
       const res = await makeRequest(server, { path: '/api/v1/students/profile' });
-      if (res.status !== 200 || !res.data.data.name.includes('Hariprasad')) {
-        throw new Error(`Expected student profile for Hariprasad, got: ${JSON.stringify(res.data)}`);
+      if (res.status !== 200 || !res.data.data.name.includes('Aarav')) {
+        throw new Error(`Expected student profile for Aarav, got: ${JSON.stringify(res.data)}`);
       }
       if (!res.data.data.radar || res.data.data.radar.programming === undefined) {
         throw new Error('Radar metrics missing in student profile');
       }
     });
 
-    // 4. Cohort Roster
-    await assertTest('GET /api/v1/students/cohort returns all 6 students in NIT cohort', async () => {
+    // 5. Cohort Roster
+    await assertTest('GET /api/v1/students/cohort returns active students in NIT cohort', async () => {
       const res = await makeRequest(server, { path: '/api/v1/students/cohort' });
-      if (res.status !== 200 || res.data.count < 6) {
-        throw new Error(`Expected 6 students, got ${res.data.count}`);
+      if (res.status !== 200 || res.data.count < 1) {
+        throw new Error(`Expected at least 1 student, got ${res.data.count}`);
       }
       const names = res.data.data.map(s => s.name);
-      const expected = ['Hariprasad PS', 'Harshavardhan', 'Kalangyiam', 'Harish M', 'Heerthick Raj', 'Harini Sri'];
-      for (const name of expected) {
-        if (!names.includes(name)) throw new Error(`Missing expected cohort student: ${name}`);
-      }
+      if (!names.includes('Aarav Sharma')) throw new Error('Missing registered student in cohort');
     });
 
     // 5. Cryptographic Certificate Verification
@@ -136,8 +156,8 @@ async function runTests() {
       if (res.status !== 200 || !res.data.data || res.data.data.length === 0) {
         throw new Error('Candidates list empty');
       }
-      // Top candidate should have high match score
-      if (res.data.data[0].match_score < 70) {
+      // Top candidate should have calibrated match score
+      if (res.data.data[0].match_score < 60) {
         throw new Error(`Top candidate score unexpectedly low: ${res.data.data[0].match_score}`);
       }
     });

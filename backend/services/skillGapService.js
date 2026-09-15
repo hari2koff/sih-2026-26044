@@ -103,9 +103,10 @@ function computeCohortGaps(cohortStudents = [], marketDemands = []) {
       }
     });
 
-    const averageLevel = Math.round(totalCohortLevel / cohortStudents.length);
+    const studentCount = Math.max(1, cohortStudents.length);
+    const averageLevel = cohortStudents.length > 0 ? Math.round(totalCohortLevel / studentCount) : Math.max(30, demand.industry_benchmark - 25);
     const deficitGap = Math.max(0, demand.industry_benchmark - averageLevel);
-    const deficitPercentage = Math.round((studentDeficitCount / cohortStudents.length) * 100);
+    const deficitPercentage = cohortStudents.length > 0 ? Math.round((studentDeficitCount / studentCount) * 100) : 0;
 
     return {
       skill_code: demand.code,

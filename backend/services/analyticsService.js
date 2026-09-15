@@ -45,6 +45,8 @@ function getPlatformOverview() {
     dean_sign_off: 'Dr. S. K. Mukherjee (Dean Academics)'
   };
 
+  const totalCount = Math.max(1, students.length);
+
   return {
     kpis: {
       total_students_enrolled: students.length,
@@ -55,9 +57,9 @@ function getPlatformOverview() {
       industry_aligned_curricula_index: '78.4%'
     },
     cohort_distribution: {
-      tier_a_direct_hire: { count: tierACount, percentage: Math.round((tierACount / students.length) * 100), label: '>= 85% Readiness' },
-      tier_b_internship_qualified: { count: tierBCount, percentage: Math.round((tierBCount / students.length) * 100), label: '70% - 84% Readiness' },
-      tier_c_bridging_in_progress: { count: tierCCount, percentage: Math.round((tierCCount / students.length) * 100), label: '< 70% Readiness' }
+      tier_a_direct_hire: { count: tierACount, percentage: students.length > 0 ? Math.round((tierACount / totalCount) * 100) : 0, label: '>= 85% Readiness' },
+      tier_b_internship_qualified: { count: tierBCount, percentage: students.length > 0 ? Math.round((tierBCount / totalCount) * 100) : 0, label: '70% - 84% Readiness' },
+      tier_c_bridging_in_progress: { count: tierCCount, percentage: students.length > 0 ? Math.round((tierCCount / totalCount) * 100) : 0, label: '< 70% Readiness' }
     },
     market_trends: marketDemandTrends,
     bos_curriculum_intelligence: bosStats,

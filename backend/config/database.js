@@ -73,195 +73,9 @@ const memoryStore = {
     }
   ],
 
-  students: [
-    {
-      id: 'f-s1',
-      user_id: 'u-student-1',
-      institution_id: 'inst-nit',
-      name: 'Hariprasad PS',
-      roll_no: '2022CSE1042',
-      department: 'Computer Science & Engineering',
-      semester: '7th Semester',
-      cgpa: 8.72,
-      overall_readiness: 78,
-      verified_badges_count: 4,
-      critical_gaps_count: 2,
-      tests_passed: 3,
-      active_building_skill: 'Docker Containerization & Microservices',
-      target_company: 'TechNova Solutions (Full Stack)',
-      radar_prog: 85,
-      radar_web: 84,
-      radar_db: 80,
-      radar_cloud: 42,
-      radar_system: 56,
-      radar_soft: 86,
-      status: 'bridging',
-      trend: '+6% this month',
-      verified_badges: ['React.js Certified', 'PostgreSQL Specialist', 'DSA Gold', 'Git & CI/CD']
-    },
-    {
-      id: 'f-s2',
-      user_id: 'u-student-2',
-      institution_id: 'inst-nit',
-      name: 'Harshavardhan',
-      roll_no: '2022CSE1018',
-      department: 'Computer Science & Engineering',
-      semester: '7th Semester',
-      cgpa: 9.12,
-      overall_readiness: 92,
-      verified_badges_count: 5,
-      critical_gaps_count: 0,
-      tests_passed: 6,
-      active_building_skill: 'Distributed Systems & Chaos Testing',
-      target_company: 'TechNova / Zoho Product Team',
-      radar_prog: 92,
-      radar_web: 90,
-      radar_db: 88,
-      radar_cloud: 84,
-      radar_system: 82,
-      radar_soft: 90,
-      status: 'ready',
-      trend: '+11% this month',
-      verified_badges: ['Java Backend Pro', 'Kafka Master', 'Spring Boot Certified', 'Docker Verified', 'AWS Associate']
-    },
-    {
-      id: 'f-s3',
-      user_id: 'u-student-3',
-      institution_id: 'inst-nit',
-      name: 'Kalangyiam',
-      roll_no: '2022CSE1014',
-      department: 'Computer Science & Engineering',
-      semester: '7th Semester',
-      cgpa: 8.40,
-      overall_readiness: 81,
-      verified_badges_count: 3,
-      critical_gaps_count: 1,
-      tests_passed: 4,
-      active_building_skill: 'AWS CloudFormation & Terraform IaC',
-      target_company: 'Amazon Web Services',
-      radar_prog: 80,
-      radar_web: 78,
-      radar_db: 82,
-      radar_cloud: 74,
-      radar_system: 70,
-      radar_soft: 82,
-      status: 'bridging',
-      trend: '+4% this month',
-      verified_badges: ['AWS Cloud Practitioner', 'Python Specialist', 'SQL Optimization']
-    },
-    {
-      id: 'f-s4',
-      user_id: 'u-student-4',
-      institution_id: 'inst-nit',
-      name: 'Harish M',
-      roll_no: '2022CSE1120',
-      department: 'Computer Science & Engineering',
-      semester: '7th Semester',
-      cgpa: 7.95,
-      overall_readiness: 64,
-      verified_badges_count: 2,
-      critical_gaps_count: 3,
-      tests_passed: 2,
-      active_building_skill: 'FastAPI REST APIs & SQL Modeling',
-      target_company: 'Front-end Track at TechNova',
-      radar_prog: 62,
-      radar_web: 76,
-      radar_db: 60,
-      radar_cloud: 30,
-      radar_system: 40,
-      radar_soft: 75,
-      status: 'support',
-      trend: '+8% this month',
-      verified_badges: ['HTML/CSS Specialist', 'JavaScript Core']
-    },
-    {
-      id: 'f-s5',
-      user_id: 'u-student-5',
-      institution_id: 'inst-nit',
-      name: 'Heerthick Raj',
-      roll_no: '2022CSE1082',
-      department: 'Computer Science & Engineering',
-      semester: '7th Semester',
-      cgpa: 8.65,
-      overall_readiness: 86,
-      verified_badges_count: 4,
-      critical_gaps_count: 0,
-      tests_passed: 5,
-      active_building_skill: 'RAG Architecture & Latency Tuning',
-      target_company: 'DataCore AI Systems',
-      radar_prog: 86,
-      radar_web: 80,
-      radar_db: 84,
-      radar_cloud: 72,
-      radar_system: 75,
-      radar_soft: 88,
-      status: 'ready',
-      trend: '+7% this month',
-      verified_badges: ['Vector DB Certified', 'Python ML Specialist', 'SQL Pro', 'DSA Gold']
-    },
-    {
-      id: 'f-s6',
-      user_id: 'u-student-6',
-      institution_id: 'inst-nit',
-      name: 'Harini Sri',
-      roll_no: '2022CSE1064',
-      department: 'Computer Science & Engineering',
-      semester: '7th Semester',
-      cgpa: 9.05,
-      overall_readiness: 90,
-      verified_badges_count: 4,
-      critical_gaps_count: 0,
-      tests_passed: 6,
-      active_building_skill: 'Service Mesh & Cloud Infrastructure Security',
-      target_company: 'Google Cloud / AWS Partner',
-      radar_prog: 90,
-      radar_web: 86,
-      radar_db: 85,
-      radar_cloud: 88,
-      radar_system: 82,
-      radar_soft: 92,
-      status: 'ready',
-      trend: '+9% this month',
-      verified_badges: ['Cloud DevOps Specialist', 'Kubernetes Certified', 'Python Pro', 'Docker Verified']
-    }
-  ],
-
-  studentSkills: {
-    'f-s1': [
-      { id: 'ss-1', skill_code: 'prog_react', skill_name: 'React.js & State Management', proficiency_level: 88, evidence_tier: 'tier_3_verified', category: 'Web Technologies' },
-      { id: 'ss-2', skill_code: 'prog_node', skill_name: 'Node.js & Express REST APIs', proficiency_level: 84, evidence_tier: 'tier_3_verified', category: 'Web Technologies' },
-      { id: 'ss-3', skill_code: 'db_pg', skill_name: 'PostgreSQL Database Modeling', proficiency_level: 80, evidence_tier: 'tier_3_verified', category: 'Database Systems' },
-      { id: 'ss-4', skill_code: 'cloud_docker', skill_name: 'Docker Containerization', proficiency_level: 35, evidence_tier: 'tier_2_assessed', category: 'Cloud & DevOps' },
-      { id: 'ss-5', skill_code: 'cloud_k8s', skill_name: 'Kubernetes Orchestration', proficiency_level: 20, evidence_tier: 'tier_1_self_claimed', category: 'Cloud & DevOps' },
-      { id: 'ss-6', skill_code: 'sys_microservices', skill_name: 'Microservices & Message Queues', proficiency_level: 45, evidence_tier: 'tier_2_assessed', category: 'System Architecture' }
-    ],
-    'f-s2': [
-      { id: 'ss-21', skill_code: 'prog_java', skill_name: 'Java & Spring Boot Enterprise', proficiency_level: 95, evidence_tier: 'tier_3_verified', category: 'Programming' },
-      { id: 'ss-22', skill_code: 'sys_microservices', skill_name: 'Microservices & Message Queues', proficiency_level: 90, evidence_tier: 'tier_3_verified', category: 'System Architecture' },
-      { id: 'ss-23', skill_code: 'cloud_docker', skill_name: 'Docker Containerization', proficiency_level: 88, evidence_tier: 'tier_3_verified', category: 'Cloud & DevOps' },
-      { id: 'ss-24', skill_code: 'db_pg', skill_name: 'PostgreSQL Database Modeling', proficiency_level: 85, evidence_tier: 'tier_3_verified', category: 'Database Systems' },
-      { id: 'ss-25', skill_code: 'prog_react', skill_name: 'React.js & State Management', proficiency_level: 80, evidence_tier: 'tier_2_assessed', category: 'Web Technologies' }
-    ],
-    'f-s3': [
-      { id: 'ss-31', skill_code: 'cloud_aws', skill_name: 'AWS Cloud Fundamentals', proficiency_level: 85, evidence_tier: 'tier_3_verified', category: 'Cloud & DevOps' },
-      { id: 'ss-32', skill_code: 'prog_python', skill_name: 'Python & Scripting', proficiency_level: 82, evidence_tier: 'tier_3_verified', category: 'Programming' },
-      { id: 'ss-33', skill_code: 'db_pg', skill_name: 'PostgreSQL Database Modeling', proficiency_level: 80, evidence_tier: 'tier_2_assessed', category: 'Database Systems' }
-    ],
-    'f-s4': [
-      { id: 'ss-41', skill_code: 'prog_react', skill_name: 'React.js & State Management', proficiency_level: 75, evidence_tier: 'tier_2_assessed', category: 'Web Technologies' },
-      { id: 'ss-42', skill_code: 'db_pg', skill_name: 'PostgreSQL Database Modeling', proficiency_level: 60, evidence_tier: 'tier_1_self_claimed', category: 'Database Systems' }
-    ],
-    'f-s5': [
-      { id: 'ss-51', skill_code: 'prog_python', skill_name: 'Python & Scripting', proficiency_level: 90, evidence_tier: 'tier_3_verified', category: 'Programming' },
-      { id: 'ss-52', skill_code: 'ai_rag', skill_name: 'Vector DBs & RAG Architecture', proficiency_level: 88, evidence_tier: 'tier_3_verified', category: 'AI & Data Systems' },
-      { id: 'ss-53', skill_code: 'db_pg', skill_name: 'PostgreSQL Database Modeling', proficiency_level: 84, evidence_tier: 'tier_3_verified', category: 'Database Systems' }
-    ],
-    'f-s6': [
-      { id: 'ss-61', skill_code: 'cloud_k8s', skill_name: 'Kubernetes Orchestration', proficiency_level: 92, evidence_tier: 'tier_3_verified', category: 'Cloud & DevOps' },
-      { id: 'ss-62', skill_code: 'cloud_docker', skill_name: 'Docker Containerization', proficiency_level: 90, evidence_tier: 'tier_3_verified', category: 'Cloud & DevOps' },
-      { id: 'ss-63', skill_code: 'prog_python', skill_name: 'Python & Scripting', proficiency_level: 88, evidence_tier: 'tier_3_verified', category: 'Programming' }
-    ]
-  },
+  users: [],
+  students: [],
+  studentSkills: {},
 
   skills: [
     { id: 'sk-1', code: 'prog_react', name: 'React.js & State Management', category: 'Web Technologies', industry_benchmark: 80 },
@@ -466,6 +280,52 @@ const memoryStore = {
   interviewTelemetry: []
 };
 
+const fs = require('fs');
+const DATA_STORE_PATH = path.join(__dirname, '..', '..', 'database', 'database_store.json');
+
+function saveToDiskDatabase() {
+  try {
+    const dataToSave = {
+      students: memoryStore.students,
+      users: memoryStore.users,
+      studentSkills: memoryStore.studentSkills,
+      certifications: memoryStore.certifications,
+      interviewTelemetry: memoryStore.interviewTelemetry,
+      lastUpdated: new Date().toISOString()
+    };
+    fs.writeFileSync(DATA_STORE_PATH, JSON.stringify(dataToSave, null, 2), 'utf-8');
+  } catch (e) {
+    console.warn('⚠️ [Database File Save Warning]:', e.message);
+  }
+}
+
+function loadFromDiskDatabase() {
+  try {
+    if (fs.existsSync(DATA_STORE_PATH)) {
+      const raw = fs.readFileSync(DATA_STORE_PATH, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed.students) && parsed.students.length > 0) {
+        memoryStore.students = parsed.students;
+      }
+      if (Array.isArray(parsed.users) && parsed.users.length > 0) {
+        memoryStore.users = parsed.users;
+      }
+      if (parsed.studentSkills && typeof parsed.studentSkills === 'object') {
+        memoryStore.studentSkills = parsed.studentSkills;
+      }
+      if (Array.isArray(parsed.certifications)) {
+        memoryStore.certifications = parsed.certifications;
+      }
+      console.log(`📦 [Persistent Database Loaded]: Restored ${memoryStore.students.length} student profile(s) from database_store.json.`);
+    }
+  } catch (e) {
+    console.warn('⚠️ [Database File Load Warning]:', e.message);
+  }
+}
+
+// Load on initialization
+loadFromDiskDatabase();
+
 // Check PostgreSQL connectivity asynchronously
 (async function testConnection() {
   if (!pool) return;
@@ -477,7 +337,7 @@ const memoryStore = {
     console.log('✅ [PostgreSQL Connected]: Server response time:', res.rows[0].current_time);
   } catch (err) {
     isPostgresConnected = false;
-    console.log('ℹ️  [Database Mode]: PostgreSQL offline or unconfigured. Running seamlessly on high-performance In-Memory Hybrid Store.');
+    console.log('ℹ️  [Database Mode]: PostgreSQL offline or unconfigured. Running seamlessly on high-performance In-Memory Hybrid Store with Persistent Disk Sync.');
   }
 })();
 
@@ -485,6 +345,8 @@ module.exports = {
   pool,
   isPostgresConnected: () => isPostgresConnected,
   memoryStore,
+  saveToDiskDatabase,
+  loadFromDiskDatabase,
   
   // Universal query wrapper that executes on Postgres if online, or gracefully resolves on memoryStore
   query: async (text, params = []) => {
@@ -493,5 +355,20 @@ module.exports = {
     }
     // Return empty result set structure for raw SQL queries when in mock mode
     return { rows: [], rowCount: 0 };
+  },
+
+  // Helper to clear all live/entered student records for clean demonstration
+  resetStudentData: () => {
+    memoryStore.students = [];
+    memoryStore.studentSkills = {};
+    memoryStore.certifications = [];
+    memoryStore.users = [];
+    memoryStore.interviewTelemetry = [];
+    try {
+      if (fs.existsSync(DATA_STORE_PATH)) {
+        fs.unlinkSync(DATA_STORE_PATH);
+      }
+    } catch (e) {}
+    return { success: true, message: 'All student records reset to fresh empty slate' };
   }
 };

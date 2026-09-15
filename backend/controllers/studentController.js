@@ -2,11 +2,398 @@
  * =============================================================================
  * SkillBridge Student Controller
  * =============================================================================
- * Handles student profiles, cohort roster, skill updates, and certificate verification.
+ * Handles student registration, credential issuance, authentication,
+ * profile live tracking, cohort analytics, and cryptographic certificate verification.
  */
 
 const crypto = require('crypto');
-const { memoryStore, query, isPostgresConnected } = require('../config/database');
+const { memoryStore, query, isPostgresConnected, resetStudentData, saveToDiskDatabase } = require('../config/database');
+const { generateToken } = require('../middleware/authMiddleware');
+const { calculateWVSEMatch } = require('../services/matchingService');
+
+/**
+ * Register a new student with live manual data entry & credential generation
+ * POST /api/v1/students/register
+ */
+const registerStudent = async (req, res) => {
+  try {
+    const {
+      name,
+      roll_no,
+      email,
+      department,
+      institution_name,
+      semester,
+      cgpa,
+      target_company,
+      password: customPassword,
+      // Skill intake ratings (0-100)
+      skills_input,
+      radar_prog = 75,
+      radar_web = 75,
+      radar_db = 70,
+      radar_cloud = 40,
+      radar_system = 50,
+      radar_soft = 80
+    } = req.body;
+
+    if (!name || !roll_no) {
+      return res.status(400).json({
+        success: false,
+        message: 'Student full name and Roll No / Registration No are required.'
+      });
+    }
+
+    // Check if roll number already exists
+    const normalizedRoll = roll_no.trim().toUpperCase();
+    const existing = memoryStore.students.find(s => s.roll_no.toUpperCase() === normalizedRoll);
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: `Student with Roll Number '${roll_no}' is already registered. Please log in with your credentials.`
+      });
+    }
+
+    // Unique IDs
+    const studentId = `s-${Date.now()}`;
+    const userId = `u-${Date.now()}`;
+    const username = normalizedRoll;
+
+    // Password generation: custom or auto-generate secure access key
+    const generatedPassword = customPassword && customPassword.trim().length >= 4
+      ? customPassword.trim()
+      : `SKILL-${Math.floor(1000 + Math.random() * 9000)}-${Math.random().toString(36).substring(2, 4).toUpperCase()}`;
+
+    // Compute initial radar and overall readiness
+    const rProg = parseInt(radar_prog, 10) || 75;
+    const rWeb = parseInt(radar_web, 10) || 75;
+    const rDb = parseInt(radar_db, 10) || 70;
+    const rCloud = parseInt(radar_cloud, 10) || 40;
+    const rSystem = parseInt(radar_system, 10) || 50;
+    const rSoft = parseInt(radar_soft, 10) || 80;
+
+    const overallReadiness = Math.round((rProg + rWeb + rDb + rCloud + rSystem + rSoft) / 6);
+    const criticalGapsCount = (rCloud < 60 ? 1 : 0) + (rSystem < 60 ? 1 : 0);
+
+    const studentRecord = {
+      id: studentId,
+      user_id: userId,
+      institution_id: 'inst-nit',
+      institution_name: institution_name || 'National Institute of Technology',
+      name: name.trim(),
+      roll_no: normalizedRoll,
+      department: department || 'Computer Science & Engineering',
+      semester: semester || '7th Semester',
+      cgpa: parseFloat(cgpa) || 8.50,
+      overall_readiness: overallReadiness,
+      verified_badges_count: 1,
+      critical_gaps_count: criticalGapsCount,
+      tests_passed: 1,
+      active_building_skill: 'Docker Containerization & Microservices',
+      target_company: target_company || 'TechNova Solutions (Full Stack)',
+      radar_prog: rProg,
+      radar_web: rWeb,
+      radar_db: rDb,
+      radar_cloud: rCloud,
+      radar_system: rSystem,
+      radar_soft: rSoft,
+      status: overallReadiness >= 85 ? 'ready' : (overallReadiness >= 70 ? 'bridging' : 'support'),
+      trend: '+5% this month',
+      verified_badges: ['SkillBridge Verified Profile Intake'],
+      created_at: new Date().toISOString()
+    };
+
+    // User credential record
+    const userRecord = {
+      id: userId,
+      student_id: studentId,
+      username: username,
+      email: email || `${normalizedRoll.toLowerCase()}@skillbridge.edu`,
+      password: generatedPassword,
+      role: 'student',
+      name: studentRecord.name,
+      created_at: new Date().toISOString()
+    };
+
+    // Initialize student skills
+    memoryStore.studentSkills[studentId] = [
+      { id: `ss-${Date.now()}-1`, skill_code: 'prog_react', skill_name: 'React.js & State Management', proficiency_level: rWeb, evidence_tier: 'tier_2_assessed', category: 'Web Technologies' },
+      { id: `ss-${Date.now()}-2`, skill_code: 'prog_node', skill_name: 'Node.js & Express REST APIs', proficiency_level: rWeb - 4, evidence_tier: 'tier_2_assessed', category: 'Web Technologies' },
+      { id: `ss-${Date.now()}-3`, skill_code: 'db_pg', skill_name: 'PostgreSQL Database Modeling', proficiency_level: rDb, evidence_tier: 'tier_2_assessed', category: 'Database Systems' },
+      { id: `ss-${Date.now()}-4`, skill_code: 'cloud_docker', skill_name: 'Docker Containerization', proficiency_level: rCloud, evidence_tier: 'tier_1_self_claimed', category: 'Cloud & DevOps' },
+      { id: `ss-${Date.now()}-5`, skill_code: 'cloud_k8s', skill_name: 'Kubernetes Orchestration', proficiency_level: Math.max(10, rCloud - 20), evidence_tier: 'tier_1_self_claimed', category: 'Cloud & DevOps' },
+      { id: `ss-${Date.now()}-6`, skill_code: 'sys_microservices', skill_name: 'Microservices & Message Queues', proficiency_level: rSystem, evidence_tier: 'tier_1_self_claimed', category: 'System Architecture' }
+    ];
+
+    // Store in memoryStore and persist to database disk store
+    memoryStore.users.push(userRecord);
+    memoryStore.students.unshift(studentRecord);
+    saveToDiskDatabase();
+
+    // If PostgreSQL is connected, write records to PostgreSQL database
+    if (isPostgresConnected()) {
+      try {
+        await query(
+          `INSERT INTO users (id, student_id, username, email, password, role, name, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           ON CONFLICT (id) DO NOTHING`,
+          [userRecord.id, userRecord.student_id, userRecord.username, userRecord.email, userRecord.password, userRecord.role, userRecord.name, userRecord.created_at]
+        );
+        await query(
+          `INSERT INTO students (id, user_id, institution_id, institution_name, name, roll_no, department, semester, cgpa, overall_readiness, verified_badges_count, critical_gaps_count, tests_passed, active_building_skill, target_company, radar_prog, radar_web, radar_db, radar_cloud, radar_system, radar_soft, status, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+           ON CONFLICT (id) DO NOTHING`,
+          [
+            studentRecord.id, studentRecord.user_id, studentRecord.institution_id, studentRecord.institution_name,
+            studentRecord.name, studentRecord.roll_no, studentRecord.department, studentRecord.semester,
+            studentRecord.cgpa, studentRecord.overall_readiness, studentRecord.verified_badges_count,
+            studentRecord.critical_gaps_count, studentRecord.tests_passed, studentRecord.active_building_skill,
+            studentRecord.target_company, studentRecord.radar_prog, studentRecord.radar_web, studentRecord.radar_db,
+            studentRecord.radar_cloud, studentRecord.radar_system, studentRecord.radar_soft, studentRecord.status,
+            studentRecord.created_at
+          ]
+        );
+      } catch (dbErr) {
+        console.warn('⚠️ [PostgreSQL Sync Notice]:', dbErr.message);
+      }
+    }
+
+    // Generate JWT Token for immediate session activation
+    const token = generateToken({
+      id: userId,
+      student_id: studentId,
+      username: username,
+      role: 'student',
+      name: studentRecord.name
+    });
+
+    const studentData = {
+      ...studentRecord,
+      skills: memoryStore.studentSkills[studentId],
+      radar: {
+        programming: rProg,
+        web_development: rWeb,
+        databases: rDb,
+        cloud_devops: rCloud,
+        system_architecture: rSystem,
+        soft_skills: rSoft
+      }
+    };
+
+    const credentialsData = {
+      username: username,
+      password: generatedPassword,
+      roll_no: normalizedRoll,
+      name: studentRecord.name
+    };
+
+    res.status(201).json({
+      success: true,
+      message: 'Student successfully registered! Credentials generated for live tracking.',
+      credentials: credentialsData,
+      token,
+      student: studentData,
+      data: {
+        student: studentData,
+        credentials: credentialsData,
+        token
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Student registration failed', error: err.message });
+  }
+};
+
+/**
+ * Student Login using Username / Roll No and Password
+ * POST /api/v1/students/login
+ */
+const loginStudent = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ success: false, message: 'Username / Roll No and password are required.' });
+    }
+
+    const cleanUser = username.trim().toUpperCase();
+    let user = memoryStore.users.find(u => 
+      u.username.toUpperCase() === cleanUser || 
+      (u.email && u.email.toUpperCase() === cleanUser)
+    );
+
+    if (!user && isPostgresConnected()) {
+      try {
+        const pgRes = await query(
+          'SELECT * FROM users WHERE UPPER(username) = $1 OR UPPER(email) = $1 LIMIT 1',
+          [cleanUser]
+        );
+        if (pgRes.rows && pgRes.rows.length > 0) {
+          user = pgRes.rows[0];
+          memoryStore.users.push(user);
+        }
+      } catch (pgErr) {
+        console.warn('⚠️ [PostgreSQL Login Query Notice]:', pgErr.message);
+      }
+    }
+
+    if (!user || user.password !== password.trim()) {
+      return res.status(401).json({ success: false, message: 'Invalid Username/Roll No or password.' });
+    }
+
+    let student = memoryStore.students.find(s => s.id === user.student_id || s.user_id === user.id);
+    if (!student && isPostgresConnected() && user.student_id) {
+      try {
+        const sRes = await query('SELECT * FROM students WHERE id = $1 LIMIT 1', [user.student_id]);
+        if (sRes.rows && sRes.rows.length > 0) {
+          student = sRes.rows[0];
+          memoryStore.students.unshift(student);
+        }
+      } catch (sErr) {}
+    }
+    const skills = student ? (memoryStore.studentSkills[student.id] || []) : [];
+
+    const token = generateToken({
+      id: user.id,
+      student_id: student ? student.id : null,
+      username: user.username,
+      role: 'student',
+      name: user.name
+    });
+
+    res.json({
+      success: true,
+      message: `Welcome back, ${user.name}! Live tracking activated.`,
+      token,
+      credentials: {
+        username: user.username,
+        name: user.name
+      },
+      student: student ? {
+        ...student,
+        skills,
+        radar: {
+          programming: student.radar_prog,
+          web_development: student.radar_web,
+          databases: student.radar_db,
+          cloud_devops: student.radar_cloud,
+          system_architecture: student.radar_system,
+          soft_skills: student.radar_soft
+        }
+      } : null,
+      data: {
+        student: student ? {
+          ...student,
+          skills,
+          radar: {
+            programming: student.radar_prog,
+            web_development: student.radar_web,
+            databases: student.radar_db,
+            cloud_devops: student.radar_cloud,
+            system_architecture: student.radar_system,
+            soft_skills: student.radar_soft
+          }
+        } : null,
+        credentials: {
+          username: user.username,
+          name: user.name
+        },
+        token
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Login failed', error: err.message });
+  }
+};
+
+/**
+ * Get personalized live tracking analytics for logged-in student
+ * GET /api/v1/students/live-tracking
+ */
+const getLiveTracking = async (req, res) => {
+  try {
+    const studentId = req.query.studentId || (req.user ? req.user.student_id : null) || (memoryStore.students[0] ? memoryStore.students[0].id : null);
+
+    if (!studentId) {
+      return res.json({
+        success: true,
+        has_active_student: false,
+        message: 'No active student session. Please register or login to view live tracking.',
+        data: null
+      });
+    }
+
+    const student = memoryStore.students.find(s => s.id === studentId);
+    if (!student) {
+      return res.status(404).json({ success: false, message: `Student '${studentId}' not found.` });
+    }
+
+    const skills = memoryStore.studentSkills[student.id] || [];
+
+    // Evaluate WVSE-v2 match for all partner company internships
+    const matchedInternships = memoryStore.internships.map(internship => {
+      const company = memoryStore.companies.find(c => c.id === internship.company_id);
+      const reqs = memoryStore.internshipRequirements[internship.id] || [];
+      const match = calculateWVSEMatch(skills, reqs);
+
+      return {
+        internship_id: internship.id,
+        role_title: internship.title,
+        company_name: company ? company.name : 'Corporate Partner',
+        stipend: internship.stipend_display,
+        ppo_package: internship.ppo_package,
+        match_score: match.matchScore,
+        readiness_tier: match.readinessTier,
+        all_mandatory_satisfied: match.allMandatorySatisfied,
+        key_strengths: match.strengths.slice(0, 3),
+        critical_deficits: match.deficits.slice(0, 3),
+        explainable_reason: match.explainableReasons[0]
+      };
+    }).sort((a, b) => b.match_score - a.match_score);
+
+    res.json({
+      success: true,
+      has_active_student: true,
+      student_profile: {
+        id: student.id,
+        name: student.name,
+        roll_no: student.roll_no,
+        department: student.department,
+        institution: student.institution_name,
+        overall_readiness: student.overall_readiness,
+        verified_badges_count: student.verified_badges_count,
+        critical_gaps_count: student.critical_gaps_count,
+        status: student.status,
+        radar: {
+          programming: student.radar_prog,
+          web_development: student.radar_web,
+          databases: student.radar_db,
+          cloud_devops: student.radar_cloud,
+          system_architecture: student.radar_system,
+          soft_skills: student.radar_soft
+        }
+      },
+      skills,
+      company_matches: matchedInternships,
+      top_target_match: matchedInternships[0] || null
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to fetch live tracking', error: err.message });
+  }
+};
+
+/**
+ * Reset all student data (clear entered cohort to start fresh for testing/demo)
+ * POST /api/v1/students/reset-data
+ */
+const resetData = async (req, res) => {
+  try {
+    const result = resetStudentData();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Reset failed', error: err.message });
+  }
+};
 
 /**
  * Get current student profile
@@ -14,56 +401,48 @@ const { memoryStore, query, isPostgresConnected } = require('../config/database'
  */
 const getProfile = async (req, res) => {
   try {
-    const studentId = req.user ? (req.user.student_id || 'f-s1') : 'f-s1';
+    const studentId = req.user ? (req.user.student_id || req.query.studentId) : req.query.studentId;
 
-    if (isPostgresConnected()) {
-      const result = await query(`
-        SELECT s.*, u.email 
-        FROM students s 
-        JOIN users u ON s.user_id = u.id 
-        WHERE s.id = $1 OR s.user_id = $2
-      `, [studentId, req.user.id]);
-
-      if (result.rows.length > 0) {
-        const student = result.rows[0];
-        // Fetch student skills
-        const skillsRes = await query(`
-          SELECT ss.*, sk.name as skill_name, sk.category, sk.code as skill_code
-          FROM student_skills ss
-          JOIN skills sk ON ss.skill_id = sk.id
-          WHERE ss.student_id = $1
-        `, [student.id]);
-
-        student.skills = skillsRes.rows;
-        return res.json({ success: true, data: student });
-      }
+    let student = null;
+    if (studentId) {
+      student = memoryStore.students.find(s => s.id === studentId || s.user_id === studentId);
+    }
+    if (!student && memoryStore.students.length > 0) {
+      student = memoryStore.students[0];
     }
 
-    // Memory Store fallback
-    const student = memoryStore.students.find(s => s.id === studentId || s.user_id === req.user.id) || memoryStore.students[0];
+    if (!student) {
+      return res.json({
+        success: true,
+        data: null,
+        message: 'No student registered yet. Please register via the Registration Portal.'
+      });
+    }
+
     const skills = memoryStore.studentSkills[student.id] || [];
 
-    const responseData = {
-      ...student,
-      skills: skills,
-      radar: {
-        programming: student.radar_prog,
-        web_development: student.radar_web,
-        databases: student.radar_db,
-        cloud_devops: student.radar_cloud,
-        system_architecture: student.radar_system,
-        soft_skills: student.radar_soft
+    res.json({
+      success: true,
+      data: {
+        ...student,
+        skills,
+        radar: {
+          programming: student.radar_prog,
+          web_development: student.radar_web,
+          databases: student.radar_db,
+          cloud_devops: student.radar_cloud,
+          system_architecture: student.radar_system,
+          soft_skills: student.radar_soft
+        }
       }
-    };
-
-    res.json({ success: true, data: responseData });
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to fetch student profile', error: err.message });
   }
 };
 
 /**
- * Get full cohort roster with optional filtering
+ * Get cohort roster
  * GET /api/v1/students/cohort
  */
 const getCohort = async (req, res) => {
@@ -85,7 +464,7 @@ const getCohort = async (req, res) => {
     res.json({
       success: true,
       count: students.length,
-      institution: 'National Institute of Technology (NIT-01)',
+      institution: 'National Institute of Technology',
       data: students
     });
   } catch (err) {
@@ -135,7 +514,11 @@ const getStudentById = async (req, res) => {
 const updateSkills = async (req, res) => {
   try {
     const { skill_code, skill_name, proficiency_level, evidence_tier } = req.body;
-    const studentId = req.user ? (req.user.student_id || 'f-s1') : 'f-s1';
+    const studentId = req.user ? req.user.student_id : (memoryStore.students[0] ? memoryStore.students[0].id : null);
+
+    if (!studentId) {
+      return res.status(400).json({ success: false, message: 'No registered student found to update skills.' });
+    }
 
     if (!skill_code || proficiency_level === undefined) {
       return res.status(400).json({ success: false, message: 'skill_code and proficiency_level are required' });
@@ -190,19 +573,18 @@ const updateSkills = async (req, res) => {
 const verifyCertificate = async (req, res) => {
   try {
     const { title, issuer, issue_date, certificate_url, skill_code } = req.body;
-    const studentId = req.user ? (req.user.student_id || 'f-s1') : 'f-s1';
+    const studentId = req.user ? req.user.student_id : (memoryStore.students[0] ? memoryStore.students[0].id : null);
 
     if (!title || !issuer) {
       return res.status(400).json({ success: false, message: 'Certificate title and issuer are required' });
     }
 
-    // Generate cryptographic SHA-256 verification hash
-    const rawPayload = `${studentId}:${title}:${issuer}:${issue_date || '2026-09'}:${Date.now()}`;
+    const rawPayload = `${studentId || 'live'}:${title}:${issuer}:${issue_date || '2026-09'}:${Date.now()}`;
     const sha256Hash = '0x' + crypto.createHash('sha256').update(rawPayload).digest('hex');
 
     const certRecord = {
       id: `cert-${Date.now()}`,
-      student_id: studentId,
+      student_id: studentId || 'live-student',
       title,
       issuer,
       issue_date: issue_date || 'September 2026',
@@ -215,8 +597,7 @@ const verifyCertificate = async (req, res) => {
 
     memoryStore.certifications.push(certRecord);
 
-    // Upgrade student's skill evidence tier to tier_3_verified if matching skill provided
-    if (skill_code && memoryStore.studentSkills[studentId]) {
+    if (studentId && skill_code && memoryStore.studentSkills[studentId]) {
       const skill = memoryStore.studentSkills[studentId].find(s => s.skill_code === skill_code);
       if (skill) {
         skill.evidence_tier = 'tier_3_verified';
@@ -224,23 +605,22 @@ const verifyCertificate = async (req, res) => {
       }
     }
 
-    // Update student badge count & cloud radar if Docker/AWS
-    const student = memoryStore.students.find(s => s.id === studentId);
+    const student = studentId ? memoryStore.students.find(s => s.id === studentId) : null;
     if (student) {
       student.verified_badges_count = (student.verified_badges_count || 0) + 1;
       if (!student.verified_badges.includes(title)) {
         student.verified_badges.push(title);
       }
       if (title.toLowerCase().includes('docker') || title.toLowerCase().includes('cloud')) {
-        student.radar_cloud = Math.min(95, (student.radar_cloud || 42) + 25);
-        student.overall_readiness = Math.min(98, (student.overall_readiness || 78) + 8);
+        student.radar_cloud = Math.min(95, (student.radar_cloud || 40) + 25);
+        student.overall_readiness = Math.min(98, (student.overall_readiness || 70) + 8);
         student.critical_gaps_count = Math.max(0, student.critical_gaps_count - 1);
       }
     }
 
     res.status(201).json({
       success: true,
-      message: 'Certificate cryptographically verified and sealed',
+      message: 'Certificate cryptographically verified and sealed with SHA-256',
       certificate: certRecord,
       updated_readiness: student ? student.overall_readiness : 86,
       trust_level: 'Tier 3 (Verified Proctor / Cert Multiplier: 1.00x)'
@@ -256,8 +636,10 @@ const verifyCertificate = async (req, res) => {
  */
 const getCertifications = async (req, res) => {
   try {
-    const studentId = req.user ? (req.user.student_id || 'f-s1') : 'f-s1';
-    const certs = memoryStore.certifications.filter(c => c.student_id === studentId);
+    const studentId = req.user ? req.user.student_id : (memoryStore.students[0] ? memoryStore.students[0].id : null);
+    const certs = studentId
+      ? memoryStore.certifications.filter(c => c.student_id === studentId)
+      : memoryStore.certifications;
 
     res.json({
       success: true,
@@ -270,6 +652,10 @@ const getCertifications = async (req, res) => {
 };
 
 module.exports = {
+  registerStudent,
+  loginStudent,
+  getLiveTracking,
+  resetData,
   getProfile,
   getCohort,
   getStudentById,
