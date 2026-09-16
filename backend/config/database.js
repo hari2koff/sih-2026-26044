@@ -277,6 +277,215 @@ const memoryStore = {
     }
   ],
 
+  skillEvidence: {
+    's-1789494444911': [
+      {
+        id: 'ev-hp-1',
+        student_id: 's-1789494444911',
+        skill_code: 'prog_python',
+        skill_name: 'Python & Data Structures',
+        category: 'Programming',
+        evidence_type: 'faculty',
+        tier: 'tier_3_verified',
+        level: 3,
+        title: 'Advanced DSA Lab Assignment & Code Review',
+        issuer: 'CSE Department, NIT Surathkal',
+        score: '84%',
+        verified_by: 'Prof. Rajesh Kumar (HOD CSE)',
+        proof_url: 'https://github.com/skillbridge-nit/dsa-lab-2026',
+        date: '15 Sep 2026',
+        status: 'verified',
+        confidence: 88
+      },
+      {
+        id: 'ev-hp-2',
+        student_id: 's-1789494444911',
+        skill_code: 'db_pg',
+        skill_name: 'PostgreSQL Database Modeling',
+        category: 'Database Systems',
+        evidence_type: 'assessment',
+        tier: 'tier_2_assessed',
+        level: 2,
+        title: 'SkillBridge PostgreSQL Proctored Benchmark',
+        issuer: 'SkillBridge Automated Engine',
+        score: '78%',
+        verified_by: 'Automated Proctor Engine',
+        proof_url: 'http://localhost:5000/api/v1/skills/db_pg/assessment',
+        date: '16 Sep 2026',
+        status: 'verified',
+        confidence: 75
+      },
+      {
+        id: 'ev-hp-3',
+        student_id: 's-1789494444911',
+        skill_code: 'prog_react',
+        skill_name: 'React.js & State Management',
+        category: 'Web Technologies',
+        evidence_type: 'project',
+        tier: 'tier_4_industry',
+        level: 4,
+        title: 'Enterprise Micro-Frontend SaaS Dashboard',
+        issuer: 'TechNova Open Source Review',
+        score: '88%',
+        verified_by: 'TechNova Engineering Team',
+        proof_url: 'https://github.com/hariprasad/react-enterprise-saas',
+        date: '10 Sep 2026',
+        status: 'verified',
+        confidence: 95
+      },
+      {
+        id: 'ev-hp-4',
+        student_id: 's-1789494444911',
+        skill_code: 'cloud_docker',
+        skill_name: 'Docker Containerization',
+        category: 'Cloud & DevOps',
+        evidence_type: 'self',
+        tier: 'tier_1_self_claimed',
+        level: 1,
+        title: 'Initial Intake Self Assessment',
+        issuer: 'Student Self Claim',
+        score: '40%',
+        verified_by: 'Unverified (Self-Reported)',
+        proof_url: '',
+        date: '15 Sep 2026',
+        status: 'self_claimed',
+        confidence: 30
+      }
+    ]
+  },
+
+  pendingVerifications: [
+    {
+      id: 'pv-101',
+      student_id: 's-1789494444911',
+      student_name: 'Hariprasad ps',
+      roll_no: '26CS263',
+      department: 'Computer Science & Engineering',
+      skill_code: 'cloud_docker',
+      skill_name: 'Docker Containerization & Microservices',
+      evidence_type: 'certificate',
+      tier_requested: 'tier_4_industry',
+      level: 4,
+      title: 'Docker Certified Associate (DCA) Preparation Capstone',
+      issuer: 'Docker Inc. Community Lab',
+      score_or_grade: '86% Grade A',
+      proof_url: 'https://github.com/hariprasad/docker-microservices-capstone',
+      date: '16 Sep 2026',
+      status: 'pending'
+    },
+    {
+      id: 'pv-102',
+      student_id: 's-arun-2',
+      student_name: 'Arun V.',
+      roll_no: '26CS104',
+      department: 'Computer Science & Engineering',
+      skill_code: 'prog_java',
+      skill_name: 'Java & Spring Boot Enterprise',
+      evidence_type: 'faculty',
+      tier_requested: 'tier_3_verified',
+      level: 3,
+      title: 'Enterprise Java Microservices Lab Assessment',
+      issuer: 'CSE Dept Lab 4',
+      score_or_grade: '82/100',
+      proof_url: 'https://github.com/arun/spring-microservices-eval',
+      date: '16 Sep 2026',
+      status: 'pending'
+    },
+    {
+      id: 'pv-103',
+      student_id: 's-rahul-3',
+      student_name: 'Rahul K.',
+      roll_no: '26CS188',
+      department: 'Computer Science & Engineering',
+      skill_code: 'db_pg',
+      skill_name: 'PostgreSQL Query Optimization & Indexing',
+      evidence_type: 'project',
+      tier_requested: 'tier_3_verified',
+      level: 3,
+      title: 'Database Sharding & Partitioning Benchmark Study',
+      issuer: 'NIT Database Research Lab',
+      score_or_grade: '88%',
+      proof_url: 'https://github.com/rahul/postgres-sharding-study',
+      date: '15 Sep 2026',
+      status: 'pending'
+    }
+  ],
+
+  skillTimeline: {
+    's-1789494444911': [
+      {
+        id: 'tl-1',
+        date: '16 Sep 2026',
+        title: 'PostgreSQL Benchmark Assessment',
+        type: 'Assessment Verified',
+        level: 2,
+        score: '78%',
+        badge: 'Assessed',
+        icon: '✓',
+        status: 'verified',
+        detail: 'SkillBridge proctored assessment scored 78% across query planning and index internals.'
+      },
+      {
+        id: 'tl-2',
+        date: '15 Sep 2026',
+        title: 'Python DSA Lab Assignment',
+        type: 'Faculty Verified',
+        level: 3,
+        score: '84%',
+        badge: 'Faculty Endorsed',
+        icon: '✓',
+        status: 'verified',
+        detail: 'Verified by Prof. Rajesh Kumar (HOD CSE) for algorithmic correctness and time complexity.'
+      },
+      {
+        id: 'tl-3',
+        date: '10 Sep 2026',
+        title: 'React.js Micro-Frontend Project',
+        type: 'Industry Verified',
+        level: 4,
+        score: '88%',
+        badge: 'Industry Credential',
+        icon: '★',
+        status: 'verified',
+        detail: 'Reviewed and validated by TechNova Engineering team for clean state management.'
+      },
+      {
+        id: 'tl-4',
+        date: '05 Sep 2026',
+        title: 'Python Self-Assessment Baseline',
+        type: 'Self Declared',
+        level: 1,
+        score: '65%',
+        badge: 'Self Declared',
+        icon: '○',
+        status: 'self_claimed',
+        detail: 'Initial onboarding self-reported baseline proficiency score.'
+      },
+      {
+        id: 'tl-5',
+        date: '28 Aug 2026',
+        title: 'Modern Web Development Workshop',
+        type: 'Institutional Workshop',
+        level: 2,
+        score: 'Completed',
+        badge: 'Completed',
+        icon: '✓',
+        status: 'verified',
+        detail: 'Completed 20-hour intensive hands-on workshop on REST APIs and modern React patterns.'
+      }
+    ]
+  },
+
+  skillActivity: {
+    's-1789494444911': [
+      { id: 'act-1', time: '10 mins ago', text: 'SQL assessment completed with 78% score (Level 2 Assessed)', type: 'assessment', color: '#00f5a0' },
+      { id: 'act-2', time: '2 hours ago', text: 'Python lab assignment endorsed by Prof. Rajesh Kumar (Level 3 Faculty Verified)', type: 'faculty', color: '#38bdf8' },
+      { id: 'act-3', time: 'Yesterday', text: 'Docker fundamentals learning module started in Skill Development', type: 'learning', color: '#f59e0b' },
+      { id: 'act-4', time: '2 days ago', text: 'Applied for TechNova Solutions Full Stack Cloud Engineer Intern', type: 'internship', color: '#a78bfa' },
+      { id: 'act-5', time: '3 days ago', text: 'React.js project verified with 95% evidence confidence', type: 'industry', color: '#00f5a0' }
+    ]
+  },
+
   interviewTelemetry: []
 };
 
@@ -290,6 +499,10 @@ function saveToDiskDatabase() {
       users: memoryStore.users,
       studentSkills: memoryStore.studentSkills,
       certifications: memoryStore.certifications,
+      skillEvidence: memoryStore.skillEvidence,
+      pendingVerifications: memoryStore.pendingVerifications,
+      skillTimeline: memoryStore.skillTimeline,
+      skillActivity: memoryStore.skillActivity,
       interviewTelemetry: memoryStore.interviewTelemetry,
       lastUpdated: new Date().toISOString()
     };
@@ -315,6 +528,18 @@ function loadFromDiskDatabase() {
       }
       if (Array.isArray(parsed.certifications)) {
         memoryStore.certifications = parsed.certifications;
+      }
+      if (parsed.skillEvidence && typeof parsed.skillEvidence === 'object') {
+        memoryStore.skillEvidence = { ...memoryStore.skillEvidence, ...parsed.skillEvidence };
+      }
+      if (Array.isArray(parsed.pendingVerifications) && parsed.pendingVerifications.length > 0) {
+        memoryStore.pendingVerifications = parsed.pendingVerifications;
+      }
+      if (parsed.skillTimeline && typeof parsed.skillTimeline === 'object') {
+        memoryStore.skillTimeline = { ...memoryStore.skillTimeline, ...parsed.skillTimeline };
+      }
+      if (parsed.skillActivity && typeof parsed.skillActivity === 'object') {
+        memoryStore.skillActivity = { ...memoryStore.skillActivity, ...parsed.skillActivity };
       }
       console.log(`📦 [Persistent Database Loaded]: Restored ${memoryStore.students.length} student profile(s) from database_store.json.`);
     }
@@ -362,6 +587,10 @@ module.exports = {
     memoryStore.students = [];
     memoryStore.studentSkills = {};
     memoryStore.certifications = [];
+    memoryStore.skillEvidence = {};
+    memoryStore.pendingVerifications = [];
+    memoryStore.skillTimeline = {};
+    memoryStore.skillActivity = {};
     memoryStore.users = [];
     memoryStore.interviewTelemetry = [];
     try {

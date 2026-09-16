@@ -16,7 +16,9 @@ const {
   getStudentById,
   updateSkills,
   verifyCertificate,
-  getCertifications
+  getCertifications,
+  getEvidence,
+  addEvidence
 } = require('../controllers/studentController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -27,6 +29,8 @@ router.post('/reset-data', resetData);
 
 // Live Student Tracking & Profile
 router.get('/live-tracking', protect, getLiveTracking);
+router.get('/evidence', protect, getEvidence);
+router.post('/evidence', protect, addEvidence);
 router.get('/profile', protect, getProfile);
 router.get('/cohort', protect, getCohort);
 router.get('/certificates', protect, getCertifications);

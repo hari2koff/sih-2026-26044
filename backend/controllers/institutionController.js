@@ -6,7 +6,7 @@
  * dynamic curriculum revision proposals.
  */
 
-const { memoryStore, query, isPostgresConnected } = require('../config/database');
+const { memoryStore, query, isPostgresConnected, saveToDiskDatabase } = require('../config/database');
 const { computeCohortGaps } = require('../services/skillGapService');
 
 /**
@@ -171,10 +171,190 @@ const updateProposalStatus = async (req, res) => {
   }
 };
 
+/**
+ * Get pending student skill evidence verification queue
+ * GET /api/v1/institutions/verifications
+ */
+const getPendingVerifications = async (req, res) => {
+  try {
+    const queue = memoryStore.pendingVerifications || [];
+    res.json({
+      success: true,
+      count: queue.length,
+      data: queue
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to retrieve verification queue', error: err.message });
+  }
+};
+
+/**
+ * Action a student evidence verification (Verify, Reject, Request Info)
+ * POST /api/v1/institutions/verifications/:id/action
+ */
+const actionVerification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, faculty_remarks, faculty_name, notes } = req.body;
+    const reviewRemarks = faculty_remarks || notes;
+
+    const verifications = memoryStore.pendingVerifications || [];
+    const itemIndex = verifications.findIndex(v => v.id === id);
+
+    if (itemIndex === -1) {
+      return res.status(404).json({ success: false, message: `Verification request '${id}' not found` });
+    }
+
+    const item = verifications[itemIndex];
+    const reviewerName = faculty_name || 'Prof. Rajesh Kumar (HOD CSE)';
+
+    if (action === 'verify') {
+      item.status = 'verified';
+      item.verified_by = reviewerName;
+      item.verified_at = new Date().toISOString();
+      item.remarks = reviewRemarks || 'Endorsed and validated against academic & industry benchmarks.';
+
+      // Remove from pending queue
+      verifications.splice(itemIndex, 1);
+
+      // 1. Update evidence item in student's evidence collection
+      const studentEvidence = memoryStore.skillEvidence[item.student_id];
+      if (studentEvidence) {
+        const ev = studentEvidence.find(e => e.id === item.evidence_id || (e.skill_code === item.skill_code && e.title === item.title));
+        if (ev) {
+          ev.status = 'verified';
+          ev.verified_by = reviewerName;
+          ev.tier = item.tier_requested || 'tier_3_verified';
+          ev.level = item.level || 3;
+          ev.confidence = 90;
+        }
+      }
+
+      // 2. Elevate student's skill in memoryStore.studentSkills
+      const studentSkills = memoryStore.studentSkills[item.student_id];
+      if (studentSkills) {
+        let skill = studentSkills.find(s => s.skill_code && s.skill_code.toLowerCase() === item.skill_code.toLowerCase());
+        if (skill) {
+          skill.evidence_tier = item.tier_requested || 'tier_3_verified';
+          skill.proficiency_level = Math.min(95, Math.max(skill.proficiency_level || 50, 82));
+        } else {
+          studentSkills.push({
+            id: `ss-${Date.now()}`,
+            skill_code: item.skill_code,
+            skill_name: item.skill_name,
+            proficiency_level: 82,
+            evidence_tier: item.tier_requested || 'tier_3_verified',
+            category: 'Verified Competency'
+          });
+        }
+      }
+
+      // 3. Elevate student radar and readiness
+      const student = memoryStore.students.find(s => s.id === item.student_id);
+      if (student) {
+        student.verified_badges_count = (student.verified_badges_count || 1) + 1;
+        student.overall_readiness = Math.min(98, (student.overall_readiness || 70) + 5);
+        if (item.skill_code.includes('docker') || item.skill_code.includes('cloud')) {
+          student.radar_cloud = Math.min(95, (student.radar_cloud || 40) + 25);
+          student.critical_gaps_count = Math.max(0, (student.critical_gaps_count || 1) - 1);
+        } else if (item.skill_code.includes('python') || item.skill_code.includes('prog')) {
+          student.radar_prog = Math.min(98, (student.radar_prog || 75) + 10);
+        }
+      }
+
+      // 4. Record student activity feed
+      if (!memoryStore.skillActivity[item.student_id]) memoryStore.skillActivity[item.student_id] = [];
+      memoryStore.skillActivity[item.student_id].unshift({
+        id: `act-${Date.now()}`,
+        time: 'Just now',
+        text: `"${item.title}" for ${item.skill_name} officially verified by ${reviewerName}! Skill elevated to Level ${item.level}.`,
+        type: 'faculty',
+        color: '#00f5a0'
+      });
+
+      // 5. Update timeline
+      if (!memoryStore.skillTimeline[item.student_id]) memoryStore.skillTimeline[item.student_id] = [];
+      memoryStore.skillTimeline[item.student_id].unshift({
+        id: `tl-${Date.now()}`,
+        date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+        title: item.title,
+        type: item.level === 4 ? 'Industry Verified' : 'Faculty Verified',
+        level: item.level,
+        score: item.score_or_grade,
+        badge: item.level === 4 ? 'Industry Credential' : 'Faculty Endorsed',
+        icon: '✓',
+        status: 'verified',
+        detail: `Verified by ${reviewerName}. ${item.remarks}`
+      });
+
+      saveToDiskDatabase();
+
+      return res.json({
+        success: true,
+        message: `Skill evidence for ${item.student_name} verified and endorsed successfully!`,
+        action: 'verified',
+        data: {
+          ...item,
+          updatedReadiness: student ? student.overall_readiness : 83
+        }
+      });
+    } else if (action === 'reject') {
+      item.status = 'rejected';
+      item.reviewed_by = reviewerName;
+      item.remarks = faculty_remarks || 'Evidence criteria not met. Please resubmit with verifiable documentation.';
+      verifications.splice(itemIndex, 1);
+
+      if (!memoryStore.skillActivity[item.student_id]) memoryStore.skillActivity[item.student_id] = [];
+      memoryStore.skillActivity[item.student_id].unshift({
+        id: `act-${Date.now()}`,
+        time: 'Just now',
+        text: `Evidence for ${item.skill_name} was rejected: ${item.remarks}`,
+        type: 'faculty',
+        color: '#f43f5e'
+      });
+
+      saveToDiskDatabase();
+
+      return res.json({
+        success: true,
+        message: 'Evidence submission rejected.',
+        action: 'rejected',
+        data: item
+      });
+    } else {
+      // request_info
+      item.status = 'needs_info';
+      item.remarks = faculty_remarks || 'Additional verification documentation requested by department.';
+
+      if (!memoryStore.skillActivity[item.student_id]) memoryStore.skillActivity[item.student_id] = [];
+      memoryStore.skillActivity[item.student_id].unshift({
+        id: `act-${Date.now()}`,
+        time: 'Just now',
+        text: `Faculty requested additional documentation for "${item.title}": ${item.remarks}`,
+        type: 'faculty',
+        color: '#f59e0b'
+      });
+
+      saveToDiskDatabase();
+
+      return res.json({
+        success: true,
+        message: 'Information request sent to student.',
+        action: 'needs_info',
+        data: item
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to process verification action', error: err.message });
+  }
+};
+
 module.exports = {
   getOverview,
   getFaculty,
   getSyllabusProposals,
   createSyllabusProposal,
-  updateProposalStatus
+  updateProposalStatus,
+  getPendingVerifications,
+  actionVerification
 };

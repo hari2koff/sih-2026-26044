@@ -25,25 +25,31 @@ const protect = async (req, res, next) => {
     if (!token && req.headers['x-demo-role']) {
       const demoRole = req.headers['x-demo-role'];
       const demoUserId = req.headers['x-user-id'] || `demo-${demoRole}-1`;
+      const firstStudent = memoryStore.students && memoryStore.students[0];
 
       req.user = {
         id: demoUserId,
+        student_id: req.headers['x-student-id'] || (firstStudent ? firstStudent.id : null),
+        username: req.headers['x-username'] || (firstStudent ? firstStudent.roll_no : null),
         email: `${demoRole}@skillbridge.edu`,
         role: demoRole,
         institution_id: 'inst-nit',
-        name: `Demo ${demoRole.charAt(0).toUpperCase() + demoRole.slice(1)}`
+        name: firstStudent ? firstStudent.name : `Demo ${demoRole.charAt(0).toUpperCase() + demoRole.slice(1)}`
       };
       return next();
     }
 
     if (!token) {
-      // Default to guest/demo student for friction-free SIH evaluation if no auth is provided
+      // Default to first registered student or demo student for friction-free evaluation
+      const firstStudent = memoryStore.students && memoryStore.students[0];
       req.user = {
-        id: 'u-student-1',
-        email: 'hariprasad@nit.edu',
+        id: firstStudent ? (firstStudent.user_id || firstStudent.id) : 'u-student-1',
+        student_id: firstStudent ? firstStudent.id : null,
+        username: firstStudent ? firstStudent.roll_no : '2024CSE1099',
+        email: firstStudent ? `${firstStudent.roll_no.toLowerCase()}@nit.edu` : 'hariprasad@nit.edu',
         role: 'student',
         institution_id: 'inst-nit',
-        name: 'Hariprasad PS'
+        name: firstStudent ? firstStudent.name : 'Hariprasad PS'
       };
       return next();
     }
@@ -54,9 +60,13 @@ const protect = async (req, res, next) => {
       
       // Look up user in DB or memoryStore
       if (isPostgresConnected()) {
-        const result = await query('SELECT id, email, role, institution_id FROM users WHERE id = $1', [decoded.id]);
+        const result = await query('SELECT id, email, role, institution_id, student_id, username, name FROM users WHERE id = $1', [decoded.id]);
         if (result.rows.length > 0) {
-          req.user = result.rows[0];
+          req.user = {
+            ...result.rows[0],
+            student_id: result.rows[0].student_id || decoded.student_id,
+            username: result.rows[0].username || decoded.username
+          };
           return next();
         }
       }
@@ -64,6 +74,9 @@ const protect = async (req, res, next) => {
       // Memory store fallback
       req.user = {
         id: decoded.id || 'u-student-1',
+        user_id: decoded.id || 'u-student-1',
+        student_id: decoded.student_id || null,
+        username: decoded.username || null,
         email: decoded.email || 'hariprasad@nit.edu',
         role: decoded.role || 'student',
         institution_id: decoded.institution_id || 'inst-nit',

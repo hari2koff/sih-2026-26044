@@ -74,6 +74,7 @@ async function runRegistrationTests() {
 
   // 1. Initial State: Cohort is clean and empty
   await assert('Empty State: GET /api/v1/students/profile returns data: null when cohort is fresh', async () => {
+    await makeRequest({ path: '/api/v1/students/reset-data', method: 'POST' });
     const res = await makeRequest({ path: '/api/v1/students/profile' });
     if (res.statusCode !== 200 || res.body.data !== null) {
       throw new Error(`Expected status 200 with data: null, got ${JSON.stringify(res.body)}`);
@@ -111,8 +112,8 @@ async function runRegistrationTests() {
       throw new Error(`Expected status 201, got ${res.statusCode}: ${JSON.stringify(res.body)}`);
     }
 
-    if (!res.body.credentials || !res.body.credentials.username || !res.body.credentials.password) {
-      throw new Error('Username or password missing from registration response');
+    if (!res.body.credentials || !res.body.credentials.username || !res.body.credentials.password || !res.body.credentials.user_id) {
+      throw new Error('Username, password, or user_id missing from registration response');
     }
 
     if (!res.body.token) {
@@ -122,12 +123,13 @@ async function runRegistrationTests() {
     issuedCredentials = res.body.credentials;
     authToken = res.body.token;
 
+    console.log(`     🔑 Issued User ID: ${issuedCredentials.user_id}`);
     console.log(`     🔑 Issued Username: ${issuedCredentials.username}`);
     console.log(`     🔑 Generated Password: ${issuedCredentials.password}`);
     console.log(`     🎯 Overall Readiness: ${res.body.student.overall_readiness}%`);
   });
 
-  // 3. Login with Generated Credentials
+  // 3. Login with Generated Roll No / Username
   await assert('Login: POST /api/v1/students/login validates issued username and password', async () => {
     const res = await makeRequest({
       path: '/api/v1/students/login',
@@ -145,6 +147,27 @@ async function runRegistrationTests() {
     if (!res.body.token || !res.body.student) {
       throw new Error('Login failed to return token or student profile');
     }
+  });
+
+  // 3a. Login using Student User ID (u-...)
+  await assert('Login by User ID: POST /api/v1/students/login validates login via Student User ID', async () => {
+    const res = await makeRequest({
+      path: '/api/v1/students/login',
+      method: 'POST',
+      body: {
+        username: issuedCredentials.user_id,
+        password: issuedCredentials.password.toLowerCase() // Also verify case-insensitive key comparison
+      }
+    });
+
+    if (res.statusCode !== 200) {
+      throw new Error(`Expected status 200, got ${res.statusCode}: ${JSON.stringify(res.body)}`);
+    }
+
+    if (!res.body.token || !res.body.student) {
+      throw new Error('Login via User ID failed to return token or student profile');
+    }
+    console.log(`     🔓 Verified login using User ID ${issuedCredentials.user_id} and case-insensitive password`);
   });
 
   // 3b. Database Disk Persistence Verification

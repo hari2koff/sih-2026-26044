@@ -1,156 +1,72 @@
 {
   "students": [
     {
-      "id": "s-1789494444911",
-      "user_id": "u-1789494444911",
+      "id": "s-1789542611898",
+      "student_id": "s-1789542611898",
+      "user_id": "u-1789542611898",
+      "username": "26CS263",
+      "password": "SKILL-5299-G7",
       "institution_id": "inst-nit",
       "institution_name": "National Institute of Technology",
       "name": "Hariprasad ps",
       "roll_no": "26CS263",
       "department": "Computer Science & Engineering",
-      "semester": "3rd Semester",
-      "cgpa": 8.65,
-      "overall_readiness": 70,
-      "verified_badges_count": 1,
-      "critical_gaps_count": 2,
-      "tests_passed": 1,
-      "active_building_skill": "Docker Containerization & Microservices",
-      "target_company": "TechNova Solutions (Full Stack)",
-      "radar_prog": 100,
-      "radar_web": 81,
-      "radar_db": 70,
-      "radar_cloud": 40,
-      "radar_system": 50,
-      "radar_soft": 80,
-      "status": "bridging",
-      "trend": "+5% this month",
-      "verified_badges": [
-        "SkillBridge Verified Profile Intake"
-      ],
-      "created_at": "2026-09-15T17:47:24.911Z"
-    },
-    {
-      "id": "s-1789494196598",
-      "user_id": "u-1789494196598",
-      "institution_id": "inst-nit",
-      "institution_name": "National Institute of Technology",
-      "name": "Hariprasad PS",
-      "roll_no": "2024CSE1099",
-      "department": "Computer Science & Engineering",
       "semester": "7th Semester",
-      "cgpa": 8.95,
-      "overall_readiness": 75,
-      "verified_badges_count": 1,
+      "cgpa": 8.85,
+      "overall_readiness": 70,
+      "verified_badges_count": 2,
       "critical_gaps_count": 1,
       "tests_passed": 1,
       "active_building_skill": "Docker Containerization & Microservices",
       "target_company": "TechNova Solutions (Full Stack)",
-      "radar_prog": 80,
-      "radar_web": 85,
-      "radar_db": 78,
-      "radar_cloud": 55,
-      "radar_system": 65,
-      "radar_soft": 85,
-      "status": "bridging",
+      "radar_prog": 75,
+      "radar_web": 75,
+      "radar_db": 70,
+      "radar_cloud": 65,
+      "radar_system": 50,
+      "radar_soft": 80,
+      "status": "support",
       "trend": "+5% this month",
       "verified_badges": [
         "SkillBridge Verified Profile Intake"
       ],
-      "created_at": "2026-09-15T17:43:16.598Z"
+      "created_at": "2026-09-16T07:10:11.898Z"
     }
   ],
   "users": [
     {
-      "id": "u-1789494196598",
-      "student_id": "s-1789494196598",
-      "username": "2024CSE1099",
-      "email": "2024cse1099@skillbridge.edu",
-      "password": "SKILL-2722-R6",
-      "role": "student",
-      "name": "Hariprasad PS",
-      "created_at": "2026-09-15T17:43:16.598Z"
-    },
-    {
-      "id": "u-1789494444911",
-      "student_id": "s-1789494444911",
+      "id": "u-1789542611898",
+      "user_id": "u-1789542611898",
+      "student_id": "s-1789542611898",
       "username": "26CS263",
-      "email": "26cs263@example.com",
-      "password": "SKILL-5941-92",
+      "roll_no": "26CS263",
+      "email": "26cs263@skillbridge.edu",
+      "password": "SKILL-5299-G7",
       "role": "student",
       "name": "Hariprasad ps",
-      "created_at": "2026-09-15T17:47:24.911Z"
+      "created_at": "2026-09-16T07:10:11.898Z"
     }
   ],
   "studentSkills": {
-    "s-1789494196598": [
+    "s-1789542611898": [
       {
-        "id": "ss-1789494196598-1",
+        "id": "ss-1789542611898-1",
         "skill_code": "prog_react",
         "skill_name": "React.js & State Management",
-        "proficiency_level": 85,
+        "proficiency_level": 75,
         "evidence_tier": "tier_2_assessed",
         "category": "Web Technologies"
       },
       {
-        "id": "ss-1789494196598-2",
+        "id": "ss-1789542611898-2",
         "skill_code": "prog_node",
         "skill_name": "Node.js & Express REST APIs",
-        "proficiency_level": 81,
+        "proficiency_level": 71,
         "evidence_tier": "tier_2_assessed",
         "category": "Web Technologies"
       },
       {
-        "id": "ss-1789494196598-3",
-        "skill_code": "db_pg",
-        "skill_name": "PostgreSQL Database Modeling",
-        "proficiency_level": 78,
-        "evidence_tier": "tier_2_assessed",
-        "category": "Database Systems"
-      },
-      {
-        "id": "ss-1789494196598-4",
-        "skill_code": "cloud_docker",
-        "skill_name": "Docker Containerization",
-        "proficiency_level": 55,
-        "evidence_tier": "tier_1_self_claimed",
-        "category": "Cloud & DevOps"
-      },
-      {
-        "id": "ss-1789494196598-5",
-        "skill_code": "cloud_k8s",
-        "skill_name": "Kubernetes Orchestration",
-        "proficiency_level": 35,
-        "evidence_tier": "tier_1_self_claimed",
-        "category": "Cloud & DevOps"
-      },
-      {
-        "id": "ss-1789494196598-6",
-        "skill_code": "sys_microservices",
-        "skill_name": "Microservices & Message Queues",
-        "proficiency_level": 65,
-        "evidence_tier": "tier_1_self_claimed",
-        "category": "System Architecture"
-      }
-    ],
-    "s-1789494444911": [
-      {
-        "id": "ss-1789494444911-1",
-        "skill_code": "prog_react",
-        "skill_name": "React.js & State Management",
-        "proficiency_level": 81,
-        "evidence_tier": "tier_2_assessed",
-        "category": "Web Technologies"
-      },
-      {
-        "id": "ss-1789494444911-2",
-        "skill_code": "prog_node",
-        "skill_name": "Node.js & Express REST APIs",
-        "proficiency_level": 77,
-        "evidence_tier": "tier_2_assessed",
-        "category": "Web Technologies"
-      },
-      {
-        "id": "ss-1789494444911-3",
+        "id": "ss-1789542611898-3",
         "skill_code": "db_pg",
         "skill_name": "PostgreSQL Database Modeling",
         "proficiency_level": 70,
@@ -158,7 +74,7 @@
         "category": "Database Systems"
       },
       {
-        "id": "ss-1789494444911-4",
+        "id": "ss-1789542611898-4",
         "skill_code": "cloud_docker",
         "skill_name": "Docker Containerization",
         "proficiency_level": 40,
@@ -166,7 +82,7 @@
         "category": "Cloud & DevOps"
       },
       {
-        "id": "ss-1789494444911-5",
+        "id": "ss-1789542611898-5",
         "skill_code": "cloud_k8s",
         "skill_name": "Kubernetes Orchestration",
         "proficiency_level": 20,
@@ -174,37 +90,185 @@
         "category": "Cloud & DevOps"
       },
       {
-        "id": "ss-1789494444911-6",
+        "id": "ss-1789542611898-6",
         "skill_code": "sys_microservices",
         "skill_name": "Microservices & Message Queues",
         "proficiency_level": 50,
         "evidence_tier": "tier_1_self_claimed",
         "category": "System Architecture"
+      },
+      {
+        "id": "ss-1789542611938",
+        "skill_code": "cloud",
+        "skill_name": "Cloud & Distributed Systems",
+        "proficiency_level": 82,
+        "evidence_tier": "tier_4_industry",
+        "category": "Verified Competency"
       }
     ]
   },
-  "certifications": [
-    {
-      "id": "cert-1",
-      "student_id": "f-s1",
-      "title": "React.js Certified Associate",
-      "issuer": "Meta Certified Professional",
-      "issue_date": "August 2026",
-      "verification_hash": "0x9F82A478B0C1E5D8F2",
-      "status": "verified",
-      "trust_multiplier": 1
-    },
-    {
-      "id": "cert-2",
-      "student_id": "f-s1",
-      "title": "PostgreSQL Specialist & Query Performance",
-      "issuer": "PostgreSQL Global Development Group Partner",
-      "issue_date": "August 2026",
-      "verification_hash": "0x4E71B892A1D0F3C2A9",
-      "status": "verified",
-      "trust_multiplier": 1
-    }
-  ],
+  "certifications": [],
+  "skillEvidence": {
+    "s-1789542611898": [
+      {
+        "id": "ev-1789542611926",
+        "student_id": "s-1789542611898",
+        "student_name": "Hariprasad ps",
+        "skill_code": "cloud",
+        "skill_name": "Cloud & Distributed Systems",
+        "evidence_type": "project verification",
+        "tier": "tier_4_industry",
+        "level": 4,
+        "title": "Kubernetes Microservices Cluster Deployment",
+        "issuer": "Dept of Computer Science & Engineering",
+        "score": "94%",
+        "verified_by": "Prof. Rajesh Kumar (HOD CSE)",
+        "proof_url": "https://github.com/hariprasad/k8s-cluster",
+        "date": "16 Sept 2026",
+        "status": "verified",
+        "confidence": 90
+      },
+      {
+        "id": "ev-1789542611898-1",
+        "student_id": "s-1789542611898",
+        "skill_code": "prog_python",
+        "skill_name": "Programming & Data Structures",
+        "category": "Programming",
+        "evidence_type": "faculty",
+        "tier": "tier_3_verified",
+        "level": 3,
+        "title": "Core Programming Lab Assessment & Code Review",
+        "issuer": "National Institute of Technology CSE Dept",
+        "score": "75%",
+        "verified_by": "Prof. Rajesh Kumar (HOD CSE)",
+        "proof_url": "",
+        "date": "16 Sept 2026",
+        "status": "verified",
+        "confidence": 85
+      },
+      {
+        "id": "ev-1789542611908-2",
+        "student_id": "s-1789542611898",
+        "skill_code": "prog_react",
+        "skill_name": "Modern Web & REST APIs",
+        "category": "Web Technologies",
+        "evidence_type": "assessment",
+        "tier": "tier_2_assessed",
+        "level": 2,
+        "title": "SkillBridge Baseline Web Evaluation",
+        "issuer": "SkillBridge Automated Engine",
+        "score": "75%",
+        "verified_by": "Platform Proctor Engine",
+        "proof_url": "",
+        "date": "16 Sept 2026",
+        "status": "verified",
+        "confidence": 72
+      },
+      {
+        "id": "ev-1789542611908-3",
+        "student_id": "s-1789542611898",
+        "skill_code": "cloud_docker",
+        "skill_name": "Cloud & Containerization",
+        "category": "Cloud & DevOps",
+        "evidence_type": "self",
+        "tier": "tier_1_self_claimed",
+        "level": 1,
+        "title": "Initial Intake Self-Assessment",
+        "issuer": "Self-Reported Claim",
+        "score": "40%",
+        "verified_by": "Unverified",
+        "proof_url": "",
+        "date": "16 Sept 2026",
+        "status": "self_claimed",
+        "confidence": 30
+      }
+    ]
+  },
+  "pendingVerifications": [],
+  "skillTimeline": {
+    "s-1789542611898": [
+      {
+        "id": "tl-1789542611938",
+        "date": "16 Sept 2026",
+        "title": "Kubernetes Microservices Cluster Deployment",
+        "type": "Industry Verified",
+        "level": 4,
+        "score": "94%",
+        "badge": "Industry Credential",
+        "icon": "✓",
+        "status": "verified",
+        "detail": "Verified by Prof. Rajesh Kumar (HOD CSE). Lab verification demonstrated complete Kubernetes deployment with 94% benchmark performance."
+      },
+      {
+        "id": "tl-1789542611926",
+        "date": "16 Sept 2026",
+        "title": "Kubernetes Microservices Cluster Deployment",
+        "type": "PROJECT VERIFICATION",
+        "level": 4,
+        "score": "94%",
+        "badge": "Pending Verification",
+        "icon": "⏳",
+        "status": "pending",
+        "detail": "Evidence for Cloud & Distributed Systems. Proof: https://github.com/hariprasad/k8s-cluster"
+      },
+      {
+        "id": "tl-1789542611908-1",
+        "date": "16 Sept 2026",
+        "title": "Digital Student Onboarding & Intake",
+        "type": "Onboarding Verified",
+        "level": 2,
+        "score": "65%",
+        "badge": "Intake Complete",
+        "icon": "✓",
+        "status": "verified",
+        "detail": "Completed baseline multi-vector intake across 6 core competency domains."
+      },
+      {
+        "id": "tl-1789542611909-2",
+        "date": "16 Sept 2026",
+        "title": "Core Programming & DSA Lab Assessment",
+        "type": "Faculty Verified",
+        "level": 3,
+        "score": "75%",
+        "badge": "Faculty Endorsed",
+        "icon": "✓",
+        "status": "verified",
+        "detail": "Endorsed by Department Faculty for programming logic and syntax proficiency."
+      }
+    ]
+  },
+  "skillActivity": {
+    "s-1789542611898": [
+      {
+        "id": "act-1789542611938",
+        "time": "Just now",
+        "text": "\"Kubernetes Microservices Cluster Deployment\" for Cloud & Distributed Systems officially verified by Prof. Rajesh Kumar (HOD CSE)! Skill elevated to Level 4.",
+        "type": "faculty",
+        "color": "#00f5a0"
+      },
+      {
+        "id": "act-1789542611926",
+        "time": "Just now",
+        "text": "Submitted \"Kubernetes Microservices Cluster Deployment\" for Cloud & Distributed Systems (Queued for Faculty Verification)",
+        "type": "project verification",
+        "color": "#f59e0b"
+      },
+      {
+        "id": "act-1789542611909-1",
+        "time": "Just now",
+        "text": "Registered live student profile (26CS263)",
+        "type": "intake",
+        "color": "#00f5a0"
+      },
+      {
+        "id": "act-1789542611909-2",
+        "time": "Just now",
+        "text": "Baseline WVSE-v2 competency radar generated",
+        "type": "radar",
+        "color": "#38bdf8"
+      }
+    ]
+  },
   "interviewTelemetry": [],
-  "lastUpdated": "2026-09-15T17:47:24.911Z"
+  "lastUpdated": "2026-09-16T07:10:11.938Z"
 }

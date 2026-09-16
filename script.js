@@ -23,13 +23,26 @@
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 3500);
 
+        const token = localStorage.getItem('skillbridge_auth_token');
+        let activeStudentId = null;
+        let activeUserId = 'u-student-1';
+        try {
+          const authStudent = JSON.parse(localStorage.getItem('skillbridge_auth_student') || 'null');
+          if (authStudent) {
+            activeStudentId = authStudent.student?.id || authStudent.student?.student_id || authStudent.credentials?.student_id;
+            activeUserId = authStudent.credentials?.user_id || authStudent.credentials?.userId || authStudent.student?.user_id || 'u-student-1';
+          }
+        } catch (e) {}
+
         const response = await fetch(url, {
           ...options,
           signal: controller.signal,
           headers: {
             'Content-Type': 'application/json',
             'x-demo-role': 'student',
-            'x-user-id': 'u-student-1',
+            'x-user-id': activeUserId,
+            ...(activeStudentId ? { 'x-student-id': activeStudentId } : {}),
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
             ...(options.headers || {})
           }
         });
@@ -103,6 +116,28 @@
       return this.request(`/api/v1/events/${eventId}/enroll`, {
         method: 'POST'
       });
+    },
+
+    async getEvidence() {
+      return this.request('/api/v1/students/evidence');
+    },
+
+    async submitEvidence(evidenceData) {
+      return this.request('/api/v1/students/evidence', {
+        method: 'POST',
+        body: JSON.stringify(evidenceData)
+      });
+    },
+
+    async getPendingVerifications() {
+      return this.request('/api/v1/institutions/verifications');
+    },
+
+    async actionVerification(id, action, facultyRemarks = '', facultyName = '') {
+      return this.request(`/api/v1/institutions/verifications/${id}/action`, {
+        method: 'POST',
+        body: JSON.stringify({ action, faculty_remarks: facultyRemarks, faculty_name: facultyName })
+      });
     }
   };
 
@@ -131,38 +166,71 @@
       // Sync student profile / live-tracking from backend
       try {
         const liveRes = await ApiClient.request('/api/v1/students/live-tracking');
-        if (liveRes && liveRes.success && liveRes.data && liveRes.data.student) {
-          const s = liveRes.data.student;
+        const liveData = liveRes && (liveRes.student_profile || liveRes.student || liveRes.data?.student_profile || liveRes.data?.student);
+        if (liveRes && liveRes.success && liveData) {
+          const s = liveData;
+          const radar = liveRes.data?.radar || s.radar || s.radarScores || {};
           const studentObj = {
             isRegistered: true,
-            id: s.id,
+            id: s.id || s.student_id,
+            student_id: s.student_id || s.id,
+            user_id: s.user_id || s.id,
             name: s.name,
             rollNo: s.roll_no,
-            institution: s.institution_name || 'National Institute of Technology',
+            institution: s.institution_name || s.institution || 'National Institute of Technology',
             department: s.department || 'Computer Science & Engineering',
             semester: s.semester || '7th Semester',
             cgpa: s.cgpa || 8.5,
-            overallReadiness: liveRes.data.overall_readiness || s.overall_readiness || 75,
+            overallReadiness: liveRes.data?.overall_readiness || s.overall_readiness || s.overallReadiness || 75,
             verifiedBadgesCount: s.verified_badges_count || 2,
-            criticalGapsCount: liveRes.data.critical_gaps ? liveRes.data.critical_gaps.length : (s.critical_gaps_count || 1),
+            criticalGapsCount: liveRes.data?.critical_gaps ? liveRes.data.critical_gaps.length : (s.critical_gaps_count || 1),
             radarScores: {
-              prog: liveRes.data.radar?.programming || s.radar_prog || 75,
-              web: liveRes.data.radar?.web_development || s.radar_web || 75,
-              db: liveRes.data.radar?.databases || s.radar_db || 70,
-              cloud: liveRes.data.radar?.cloud_devops || s.radar_cloud || 40,
-              system: liveRes.data.radar?.system_architecture || s.radar_system || 50,
-              soft: liveRes.data.radar?.soft_skills || s.radar_soft || 80
+              prog: radar.programming || radar.prog || s.radar_prog || 75,
+              web: radar.web_development || radar.web || s.radar_web || 75,
+              db: radar.databases || radar.db || s.radar_db || 70,
+              cloud: radar.cloud_devops || radar.cloud || s.radar_cloud || 40,
+              system: radar.system_architecture || radar.system || s.radar_system || 50,
+              soft: radar.soft_skills || radar.soft || s.radar_soft || 80
             },
-            targetCompany: s.target_company || 'TechNova Solutions (Full Stack)'
+            targetCompany: s.target_company || s.targetCompany || 'TechNova Solutions (Full Stack)'
           };
 
+          let savedPassword = '••••••••';
+          let savedCreds = null;
+          try {
+            const rawStored = localStorage.getItem('skillbridge_auth_student');
+            if (rawStored) {
+              const parsed = JSON.parse(rawStored);
+              savedCreds = parsed.credentials;
+              if (savedCreds?.password && savedCreds.password !== '••••••••') {
+                savedPassword = savedCreds.password;
+              }
+            }
+          } catch (e) {}
+
           const creds = {
-            username: s.roll_no,
-            password: '••••••••',
+            user_id: s.user_id || savedCreds?.user_id || 'u-student-1',
+            userId: s.user_id || savedCreds?.user_id || 'u-student-1',
+            student_id: s.id || s.student_id,
+            username: s.username || s.roll_no,
+            password: savedPassword,
             student_name: s.name,
             roll_no: s.roll_no,
-            issue_date: s.created_at
+            issue_date: s.created_at || savedCreds?.issue_date || new Date().toISOString()
           };
+
+          if (liveRes.evidence_list && liveRes.evidence_list.length > 0) {
+            state.evidenceList = liveRes.evidence_list;
+          }
+          if (liveRes.evidence_confidence) {
+            state.evidenceConfidence = liveRes.evidence_confidence;
+          }
+          if (liveRes.timeline && liveRes.timeline.length > 0) {
+            state.skillTimeline = liveRes.timeline;
+          }
+          if (liveRes.activities && liveRes.activities.length > 0) {
+            state.skillActivity = liveRes.activities;
+          }
 
           applyLiveStudentData(studentObj, creds, true);
         } else {
@@ -175,6 +243,19 @@
         }
       } catch (e) {
         console.warn('Profile sync error:', e);
+      }
+
+      // Sync pending faculty verifications from backend
+      try {
+        const verRes = await ApiClient.getPendingVerifications();
+        if (verRes && verRes.success && verRes.data) {
+          state.pendingVerifications = verRes.data;
+          const facBadge = document.getElementById('faculty-pending-verifications-count');
+          if (facBadge) facBadge.textContent = state.pendingVerifications.length;
+          renderFacultyVerifications();
+        }
+      } catch (e) {
+        console.warn('Pending verifications sync error:', e);
       }
 
       // Sync proposals from backend
@@ -385,6 +466,8 @@
     renderRoadmaps();
     renderRecruiterPortal();
     renderFacultyStudents();
+    renderEvidenceSection();
+    renderFacultyVerifications();
   }
 
   function openRegisterModal() {
@@ -411,16 +494,19 @@
     const modal = document.getElementById('student-credentials-modal');
     if (!modal) return;
 
+    const uidEl = document.getElementById('cred-display-userid');
     const nameEl = document.getElementById('cred-display-name') || document.getElementById('cred-student-name');
     const userEl = document.getElementById('cred-display-username') || document.getElementById('cred-username');
     const passEl = document.getElementById('cred-display-password') || document.getElementById('cred-password');
     const metaEl = document.getElementById('cred-display-meta');
     const dateEl = document.getElementById('cred-issue-date');
 
+    const sUid = creds.user_id || creds.userId || state.student?.user_id || 'u-student-1';
     const sName = creds.student_name || creds.name || state.student?.name || 'Student';
     const sUser = creds.username || creds.roll_no || state.student?.rollNo || 'USERNAME';
     const sPass = creds.password || '••••••••';
 
+    if (uidEl) uidEl.textContent = sUid;
     if (nameEl) nameEl.textContent = sName;
     if (userEl) userEl.textContent = sUser;
     if (passEl) passEl.textContent = sPass;
@@ -440,11 +526,12 @@
   }
 
   function copyCredentials() {
+    const uid = document.getElementById('cred-display-userid')?.textContent || state.activeStudentCredentials?.user_id || '';
     const user = document.getElementById('cred-display-username')?.textContent || document.getElementById('cred-username')?.textContent || '';
     const pass = document.getElementById('cred-display-password')?.textContent || document.getElementById('cred-password')?.textContent || '';
     const name = document.getElementById('cred-display-name')?.textContent || document.getElementById('cred-student-name')?.textContent || '';
 
-    const textToCopy = `SkillBridge Student Access Card\n--------------------------------\nStudent: ${name}\nUsername: ${user}\nPassword: ${pass}\nPortal: http://localhost:5000\n--------------------------------`;
+    const textToCopy = `SkillBridge Student Access Card\n--------------------------------\nStudent: ${name}${uid ? `\nStudent User ID: ${uid}` : ''}\nUsername: ${user}\nPassword: ${pass}\nPortal: http://localhost:5000\n--------------------------------`;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(textToCopy).then(() => {
@@ -592,9 +679,19 @@
       };
     }
 
+    const userIdVal = (creds && (creds.user_id || creds.userId)) || registeredData.user_id || `u-${Date.now()}`;
+    const studentIdVal = registeredData.id || registeredData.student_id;
+    if (creds) {
+      creds.user_id = userIdVal;
+      creds.userId = userIdVal;
+      creds.student_id = studentIdVal;
+    }
+
     const student = {
       isRegistered: true,
-      id: registeredData.id,
+      id: studentIdVal,
+      student_id: studentIdVal,
+      user_id: userIdVal,
       name: registeredData.name,
       rollNo: registeredData.roll_no,
       institution: registeredData.institution_name || institution,
@@ -641,9 +738,16 @@
       if (response && response.success) {
         const studentRec = (response.data && response.data.student) || response.student;
         if (studentRec) {
+          const userIdVal = (response.data && response.data.credentials && (response.data.credentials.user_id || response.data.credentials.userId)) ||
+                            (response.credentials && (response.credentials.user_id || response.credentials.userId)) ||
+                            studentRec.user_id ||
+                            studentRec.id;
+
           const student = {
             isRegistered: true,
             id: studentRec.id,
+            student_id: studentRec.id,
+            user_id: userIdVal,
             name: studentRec.name,
             rollNo: studentRec.roll_no,
             institution: studentRec.institution_name,
@@ -670,11 +774,14 @@
                               username;
 
           const creds = {
+            user_id: userIdVal,
+            userId: userIdVal,
+            student_id: studentRec.id,
             username: usernameVal,
             password: password,
             student_name: student.name,
             roll_no: student.rollNo,
-            issue_date: new Date().toISOString()
+            issue_date: studentRec.created_at || new Date().toISOString()
           };
 
           const authToken = (response.data && response.data.token) || response.token;
@@ -693,7 +800,18 @@
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          if (parsed.credentials && parsed.credentials.username.toUpperCase() === username.toUpperCase() && parsed.credentials.password === password) {
+          const userMatch = (parsed.credentials?.username && parsed.credentials.username.toUpperCase() === username.toUpperCase()) ||
+                            (parsed.credentials?.user_id && parsed.credentials.user_id.toUpperCase() === username.toUpperCase()) ||
+                            (parsed.student?.user_id && parsed.student.user_id.toUpperCase() === username.toUpperCase()) ||
+                            (parsed.student?.rollNo && parsed.student.rollNo.toUpperCase() === username.toUpperCase()) ||
+                            (parsed.student?.id && parsed.student.id.toUpperCase() === username.toUpperCase());
+
+          const passMatch = parsed.credentials && (
+            parsed.credentials.password === password ||
+            parsed.credentials.password.trim().toUpperCase() === password.toUpperCase()
+          );
+
+          if (userMatch && passMatch) {
             applyLiveStudentData(parsed.student, parsed.credentials, false);
             closeLoginModal();
             showToast(`🔓 Welcome back, ${parsed.student.name}! (Offline Session Restored)`, 'success');
@@ -796,6 +914,231 @@
       skills: []
     },
     activeStudentCredentials: null,
+
+    // Evidence Verification & Live Tracking Ecosystem State
+    evidenceConfidence: 78,
+    evidenceConfidenceTier: 'tier_3_verified',
+    evidenceList: [
+      {
+        id: 'ev-1',
+        skill_code: 'prog',
+        skill_name: 'Programming & Data Structures',
+        evidence_type: 'assessment',
+        tier: 'tier_2_assessed',
+        level: 2,
+        title: 'C & Data Structures Algorithmic Benchmark',
+        issuer: 'SkillBridge Automated Assessment System',
+        score: '82%',
+        verified_by: 'Platform Automated Engine',
+        status: 'verified',
+        confidence: 75,
+        date: '10 Aug 2026'
+      },
+      {
+        id: 'ev-2',
+        skill_code: 'prog',
+        skill_name: 'Programming & Data Structures',
+        evidence_type: 'project',
+        tier: 'tier_3_verified',
+        level: 3,
+        title: 'High-Performance Distributed Graph Routing in Python',
+        issuer: 'Dept of Computer Science & Engineering',
+        score: 'Verified',
+        verified_by: 'Prof. Rajesh Kumar (CSE)',
+        status: 'verified',
+        confidence: 88,
+        date: '20 Aug 2026',
+        proof_url: 'https://github.com/hariprasad/graph-routing'
+      },
+      {
+        id: 'ev-3',
+        skill_code: 'db',
+        skill_name: 'Relational DBMS & SQL Optimization',
+        evidence_type: 'certificate',
+        tier: 'tier_4_industry',
+        level: 4,
+        title: 'PostgreSQL Advanced Indexing & Query Tuning Certification',
+        issuer: 'PostgreSQL Professional Guild & TechNova',
+        score: '100%',
+        verified_by: 'TechNova Engineering Team',
+        status: 'verified',
+        confidence: 95,
+        date: '14 Aug 2026',
+        proof_url: 'https://cert.technova.io/verify/9F82A478B'
+      },
+      {
+        id: 'ev-4',
+        skill_code: 'cloud',
+        skill_name: 'Cloud & Distributed Systems',
+        evidence_type: 'self',
+        tier: 'tier_1_self_claimed',
+        level: 1,
+        title: 'Docker & Basic Linux Namespaces Self-Assessment',
+        issuer: 'Student Self-Evaluation',
+        score: '40%',
+        verified_by: 'Self Reported (Unverified)',
+        status: 'self_claimed',
+        confidence: 35,
+        date: '02 Sep 2026'
+      }
+    ],
+    pendingVerifications: [
+      {
+        id: 'pv-seed-1',
+        evidence_id: 'ev-seed-1',
+        student_id: 's-1789494444911',
+        student_name: 'Hariprasad ps',
+        roll_no: '26CS263',
+        department: 'Computer Science & Engineering',
+        skill_code: 'cloud',
+        skill_name: 'Cloud & Distributed Systems',
+        evidence_type: 'project',
+        tier_requested: 'tier_3_verified',
+        level: 3,
+        title: 'Docker Multi-Stage Containerization Lab Assignment',
+        issuer: 'Dept of CSE Virtual Cloud Lab',
+        score_or_grade: '92%',
+        proof_url: 'https://github.com/hariprasad/docker-lab',
+        date: '12 Sep 2026',
+        status: 'pending'
+      },
+      {
+        id: 'pv-seed-2',
+        evidence_id: 'ev-seed-2',
+        student_id: 's-1789494444912',
+        student_name: 'Ananya Sharma',
+        roll_no: '26CS114',
+        department: 'Computer Science & Engineering',
+        skill_code: 'db',
+        skill_name: 'Relational DBMS & SQL Optimization',
+        evidence_type: 'certificate',
+        tier_requested: 'tier_4_industry',
+        level: 4,
+        title: 'Oracle Certified Database Associate 19c',
+        issuer: 'Oracle University Accreditation',
+        score_or_grade: '96%',
+        proof_url: 'https://oracle.com/verify/cert-44912',
+        date: '11 Sep 2026',
+        status: 'pending'
+      },
+      {
+        id: 'pv-seed-3',
+        evidence_id: 'ev-seed-3',
+        student_id: 's-1789494444913',
+        student_name: 'Rohan Deshmukh',
+        roll_no: '26CS298',
+        department: 'Information Science & Engineering',
+        skill_code: 'prog',
+        skill_name: 'Programming & Data Structures',
+        evidence_type: 'project',
+        tier_requested: 'tier_3_verified',
+        level: 3,
+        title: 'Lock-Free Concurrent SkipList Map Implementation in Java',
+        issuer: 'Advanced Systems Programming Lab',
+        score_or_grade: '88%',
+        proof_url: 'https://github.com/rohand/skiplist-concurrent',
+        date: '10 Sep 2026',
+        status: 'pending'
+      },
+      {
+        id: 'pv-seed-4',
+        evidence_id: 'ev-seed-4',
+        student_id: 's-1789494444914',
+        student_name: 'Pooja Hegde',
+        roll_no: '26CS089',
+        department: 'Computer Science & Engineering',
+        skill_code: 'web',
+        skill_name: 'Web Architecture & RESTful APIs',
+        evidence_type: 'certificate',
+        tier_requested: 'tier_4_industry',
+        level: 4,
+        title: 'Meta Certified Front-End Developer Specialization',
+        issuer: 'Coursera & Meta Blueprint',
+        score_or_grade: '98%',
+        proof_url: 'https://coursera.org/verify/meta-front-end-89',
+        date: '08 Sep 2026',
+        status: 'pending'
+      }
+    ],
+    skillTimeline: [
+      {
+        id: 'tl-1',
+        date: '14 Aug 2026',
+        title: 'PostgreSQL Query Tuning (Score 100%)',
+        type: 'INDUSTRY CERTIFICATE',
+        level: 4,
+        badge: 'Industry Credential',
+        icon: '★',
+        detail: 'Cleared with 100% benchmark score endorsed by TechNova Engineering.'
+      },
+      {
+        id: 'tl-2',
+        date: '20 Aug 2026',
+        title: 'Python Graph Routing Project',
+        type: 'FACULTY VERIFIED',
+        level: 3,
+        badge: 'Faculty Verified',
+        icon: '✓',
+        detail: 'Endorsed by Prof. Rajesh Kumar after lab demonstration and code review.'
+      },
+      {
+        id: 'tl-3',
+        date: '28 Aug 2026',
+        title: 'Algorithms & Data Structures Diagnostic',
+        type: 'PROCTORED ASSESSMENT',
+        level: 2,
+        badge: 'Assessment Scored',
+        icon: '⚡',
+        detail: 'Platform automated proctored quiz score: 82/100.'
+      },
+      {
+        id: 'tl-4',
+        date: '02 Sep 2026',
+        title: 'Cloud & Containers Self-Claim',
+        type: 'SELF ASSESSMENT',
+        level: 1,
+        badge: 'Self Declared',
+        icon: '○',
+        detail: 'Initial baseline claim entered at 40% proficiency (0.40x multiplier).'
+      }
+    ],
+    skillActivity: [
+      {
+        id: 'act-1',
+        time: '2 hours ago',
+        text: 'Python Graph Routing verified by Prof. Rajesh Kumar (Level 3 Elevated)',
+        type: 'faculty',
+        color: '#10b981'
+      },
+      {
+        id: 'act-2',
+        time: 'Yesterday',
+        text: 'PostgreSQL 100% Industry Certification credential authenticated via TechNova API',
+        type: 'certificate',
+        color: '#a855f7'
+      },
+      {
+        id: 'act-3',
+        time: '3 days ago',
+        text: 'Proctored Python & DSA quiz cleared with 82% benchmark',
+        type: 'assessment',
+        color: '#0284c7'
+      },
+      {
+        id: 'act-4',
+        time: '5 days ago',
+        text: 'Self-assessment baseline logged for Cloud & DevOps (40%)',
+        type: 'self',
+        color: '#94a3b8'
+      }
+    ],
+    targetRole: {
+      roleTitle: 'Cloud Backend Developer & Distributed Systems',
+      company: 'TechNova Solutions',
+      cutoff: 75,
+      current: 68,
+      gap: -7
+    },
 
     // Company Database with Benchmarks
     companies: [
@@ -1698,6 +2041,939 @@
   }
 
   // ---------------------------------------------------------------------------
+  // 5B. EVIDENCE-BACKED SKILL VERIFICATION & LIVE TRACKER ENGINE
+  // ---------------------------------------------------------------------------
+
+  function getSkillNameByCode(code) {
+    const map = {
+      prog: 'Programming & Data Structures',
+      cloud: 'Cloud & Distributed Systems',
+      db: 'Relational DBMS & SQL Optimization',
+      web: 'Web Architecture & RESTful APIs',
+      system: 'System Design & Scalability',
+      soft: 'Analytical & Behavioral Problem Solving'
+    };
+    return map[code] || 'Technical Competency';
+  }
+
+  function renderEvidenceSection() {
+    renderTargetRoleWidget();
+    renderEvidenceBackedSkills();
+    renderSkillGapActionMatrix();
+    renderLiveSkillProgress();
+    renderSkillProgressionStepper();
+    renderSkillTimeline();
+    renderActivityFeed();
+  }
+
+  function renderTargetRoleWidget() {
+    const s = state.student;
+    const isRegistered = s && s.isRegistered;
+    const currentReadiness = isRegistered ? s.overallReadiness : 68;
+    const cutoff = 75;
+    const gap = currentReadiness - cutoff;
+
+    const curEl = document.getElementById('target-role-current-level');
+    const cutEl = document.getElementById('target-role-cutoff-level');
+    const gapEl = document.getElementById('target-role-gap-val');
+    const summaryBadge = document.getElementById('target-role-summary-badge');
+    const checklist = document.getElementById('target-role-checklist');
+
+    if (curEl) curEl.textContent = `${currentReadiness}%`;
+    if (cutEl) cutEl.textContent = `${cutoff}%`;
+    if (gapEl) {
+      gapEl.textContent = gap >= 0 ? `+${gap}% (Met)` : `${gap}%`;
+      gapEl.className = `role-stat-val ${gap >= 0 ? 'primary' : 'alert'}`;
+    }
+
+    const cloudScore = isRegistered ? (s.radarScores?.cloud || 40) : 40;
+    const progScore = isRegistered ? (s.radarScores?.prog || 82) : 82;
+    const dbScore = isRegistered ? (s.radarScores?.db || 78) : 78;
+    const webScore = isRegistered ? (s.radarScores?.web || 75) : 75;
+
+    const reqs = [
+      { name: 'Python & Data Structures', score: progScore, target: 80, tier: 'Level 3: Faculty Verified', satisfied: progScore >= 80 },
+      { name: 'PostgreSQL & DB Tuning', score: dbScore, target: 70, tier: 'Level 4: Industry Credential', satisfied: dbScore >= 70 },
+      { name: 'REST & Microservices', score: webScore, target: 75, tier: 'Level 2: Assessed', satisfied: webScore >= 75 },
+      { name: 'Docker & Cloud Containers', score: cloudScore, target: 75, tier: cloudScore >= 75 ? 'Level 3: Verified' : 'Level 1: Self Claim', satisfied: cloudScore >= 75 }
+    ];
+
+    const satisfiedCount = reqs.filter(r => r.satisfied).length;
+    if (summaryBadge) {
+      summaryBadge.textContent = `${satisfiedCount} of ${reqs.length} Requirements Satisfied (${Math.round((satisfiedCount / reqs.length) * 100)}%)`;
+      summaryBadge.style.borderColor = satisfiedCount === reqs.length ? 'rgba(16, 185, 129, 0.4)' : 'rgba(56, 189, 248, 0.4)';
+      summaryBadge.style.color = satisfiedCount === reqs.length ? '#10b981' : '#0284c7';
+    }
+
+    if (checklist) {
+      checklist.innerHTML = reqs.map(r => `
+        <span class="req-chip ${r.satisfied ? 'satisfied' : 'deficit'}">
+          ${r.satisfied ? '✓' : '✕'} ${r.name} (${r.score}% / ${r.tier} ${r.satisfied ? '' : '• Gap ' + (r.score - r.target) + '%'})
+        </span>
+      `).join('');
+    }
+  }
+
+  function renderEvidenceBackedSkills() {
+    const container = document.getElementById('evidence-competencies-grid');
+    if (!container) return;
+
+    const s = state.student;
+    const isRegistered = s && s.isRegistered;
+    const radar = s?.radarScores || { prog: 75, web: 75, db: 70, cloud: 40, system: 50, soft: 80 };
+
+    const vectors = [
+      {
+        code: 'prog',
+        title: 'Programming & Data Structures',
+        category: 'Core Engineering',
+        score: radar.prog || 75,
+        target: 80,
+        tierKey: 'tier_3',
+        tierLabel: 'Level 3: Faculty Verified (0.90x)',
+        tierPillClass: 'tier-3',
+        confidence: 88,
+        multiplier: 0.90,
+        evidence: [
+          { name: 'C Programming Assessment', score: '82%', type: 'assessment', verified: true, icon: '✓' },
+          { name: 'Python Graph Routing Project', score: 'Verified', type: 'faculty', verified: true, icon: '✓' },
+          { name: 'DSA Lab Assessment', score: '76%', type: 'assessment', verified: true, icon: '✓' },
+          { name: 'Self Assessment Claim', score: '80%', type: 'self', verified: false, icon: '○' }
+        ]
+      },
+      {
+        code: 'cloud',
+        title: 'Cloud & Distributed Systems',
+        category: 'Production Infrastructure',
+        score: radar.cloud || 40,
+        target: 75,
+        tierKey: radar.cloud >= 75 ? 'tier_3' : 'tier_1',
+        tierLabel: radar.cloud >= 75 ? 'Level 3: Faculty Verified (0.90x)' : 'Level 1: Self Declared (0.40x)',
+        tierPillClass: radar.cloud >= 75 ? 'tier-3' : 'tier-1',
+        confidence: radar.cloud >= 75 ? 88 : 35,
+        multiplier: radar.cloud >= 75 ? 0.90 : 0.40,
+        evidence: radar.cloud >= 75 ? [
+          { name: 'Docker & Microservices Quiz', score: '100%', type: 'assessment', verified: true, icon: '✓' },
+          { name: 'Kubernetes Cluster Deployment', score: '94%', type: 'faculty', verified: true, icon: '✓' },
+          { name: 'Initial Baseline Self-Claim', score: '40%', type: 'self', verified: false, icon: '○' }
+        ] : [
+          { name: 'Docker Linux Namespaces Claim', score: '40%', type: 'self', verified: false, icon: '○' },
+          { name: 'Microservices Hands-on Lab', score: 'Pending Verification', type: 'project', verified: false, icon: '⏳' }
+        ]
+      },
+      {
+        code: 'db',
+        title: 'Relational DBMS & SQL Optimization',
+        category: 'Data Engineering',
+        score: radar.db || 70,
+        target: 70,
+        tierKey: 'tier_4',
+        tierLabel: 'Level 4: Industry Credential (1.00x)',
+        tierPillClass: 'tier-4',
+        confidence: 95,
+        multiplier: 1.00,
+        evidence: [
+          { name: 'PostgreSQL Advanced Indexing', score: '100%', type: 'certificate', verified: true, icon: '★' },
+          { name: 'Query Optimization Lab', score: '88%', type: 'faculty', verified: true, icon: '✓' },
+          { name: 'Relational Schema Benchmark', score: '78%', type: 'assessment', verified: true, icon: '✓' }
+        ]
+      },
+      {
+        code: 'web',
+        title: 'Web Architecture & RESTful APIs',
+        category: 'Full Stack Systems',
+        score: radar.web || 75,
+        target: 85,
+        tierKey: 'tier_2',
+        tierLabel: 'Level 2: Assessment Verified (0.75x)',
+        tierPillClass: 'tier-2',
+        confidence: 75,
+        multiplier: 0.75,
+        evidence: [
+          { name: 'React.js State Engine Assessment', score: '85%', type: 'assessment', verified: true, icon: '✓' },
+          { name: 'Node.js Express Middleware Lab', score: '78%', type: 'faculty', verified: true, icon: '✓' },
+          { name: 'Self Architecture Claim', score: '80%', type: 'self', verified: false, icon: '○' }
+        ]
+      },
+      {
+        code: 'system',
+        title: 'System Design & Scalability',
+        category: 'Architecture',
+        score: radar.system || 50,
+        target: 70,
+        tierKey: 'tier_2',
+        tierLabel: 'Level 2: Assessment Verified (0.75x)',
+        tierPillClass: 'tier-2',
+        confidence: 70,
+        multiplier: 0.75,
+        evidence: [
+          { name: 'Distributed Caching Quiz', score: '70%', type: 'assessment', verified: true, icon: '✓' },
+          { name: 'Load Balancing Design Claim', score: '50%', type: 'self', verified: false, icon: '○' }
+        ]
+      },
+      {
+        code: 'soft',
+        title: 'Analytical & Behavioral Problem Solving',
+        category: 'Corporate Readiness',
+        score: radar.soft || 80,
+        target: 75,
+        tierKey: 'tier_3',
+        tierLabel: 'Level 3: Faculty Verified (0.90x)',
+        tierPillClass: 'tier-3',
+        confidence: 85,
+        multiplier: 0.90,
+        evidence: [
+          { name: 'Faculty Behavioral Review (Mock Interview)', score: '85%', type: 'faculty', verified: true, icon: '✓' },
+          { name: 'Verbal & Quantitative Benchmark', score: '80%', type: 'assessment', verified: true, icon: '✓' }
+        ]
+      }
+    ];
+
+    container.innerHTML = vectors.map(v => {
+      const contrib = (v.score * v.multiplier * 0.20).toFixed(1);
+      const confClass = v.confidence >= 85 ? 'high' : (v.confidence >= 70 ? 'med' : 'low');
+
+      return `
+        <div class="evidence-competency-card">
+          <div>
+            <div class="comp-top-row">
+              <div class="comp-title-group">
+                <h4>${v.title}</h4>
+                <span>${v.category}</span>
+              </div>
+              <span class="tier-pill ${v.tierPillClass}">${v.tierLabel}</span>
+            </div>
+
+            <div class="comp-metrics-row">
+              <div class="comp-metric-col">
+                <span class="comp-metric-lbl">Current Level</span>
+                <span class="comp-metric-num ${v.score >= v.target ? 'high' : 'low'}">${v.score}%</span>
+              </div>
+              <div class="comp-metric-col">
+                <span class="comp-metric-lbl">Evidence Confidence</span>
+                <span class="comp-metric-num ${confClass}">${v.confidence}%</span>
+              </div>
+            </div>
+
+            <div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">
+              Verifiable Evidence Artifacts:
+            </div>
+            <ul class="evidence-items-checklist">
+              ${v.evidence.map(e => `
+                <li class="evidence-check-item ${e.verified ? 'verified' : 'self'}">
+                  <span><span class="check-icon">${e.icon}</span> ${e.name}</span>
+                  <strong>${e.score}</strong>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+
+          <div class="comp-card-footer">
+            <div class="comp-readiness-contrib">
+              Readiness Contrib: <strong>+${contrib}%</strong>
+            </div>
+            <div class="comp-actions-group">
+              <button class="btn-card-sm" onclick="window.SkillBridge.openViewEvidenceModal('${v.code}')">View Proof</button>
+              <button class="btn-card-sm primary" onclick="window.SkillBridge.openAddEvidenceModal('${v.code}')">+ Add</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderSkillGapActionMatrix() {
+    const container = document.getElementById('skill-gap-action-matrix');
+    if (!container) return;
+
+    const s = state.student;
+    const isRegistered = s && s.isRegistered;
+    const cloudScore = isRegistered ? (s.radarScores?.cloud || 40) : 40;
+
+    const gaps = [
+      {
+        skill: 'Docker Containerization & Multi-stage Builds',
+        deficit: cloudScore < 75 ? `-${75 - cloudScore}%` : 'Resolved',
+        severity: cloudScore < 75 ? 'Critical Blocker' : 'Satisfied',
+        targetCompany: 'TechNova Solutions & AWS APN',
+        steps: [
+          { num: '1', title: 'Complete Microservices Roadmap', desc: 'Docker 101 & OCI specification guides' },
+          { num: '2', title: 'Virtual Sandbox Lab', desc: 'Deploy multi-stage container build' },
+          { num: '3', title: 'TechNova Validation Quiz', desc: 'Clear 3 proctored questions' },
+          { num: '4', title: 'Faculty Lab Endorsement', desc: 'Elevate tier from Level 1 to Level 3' }
+        ],
+        actionBtn: 'Start Skill Development →',
+        actionFn: "window.SkillBridge.launchQuizTest('docker')"
+      },
+      {
+        skill: 'Kubernetes Pod Orchestration & Autoscaling',
+        deficit: '-25%',
+        severity: 'Critical Blocker',
+        targetCompany: 'TechNova Solutions',
+        steps: [
+          { num: '1', title: 'Kube Fundamentals Roadmap', desc: 'Pod lifecycles, ConfigMaps, and Services' },
+          { num: '2', title: 'Minikube Hands-on Sandbox', desc: 'Deploy 3-node ingress cluster' },
+          { num: '3', title: 'Diagnostics Quiz', desc: 'Test cluster network policies' },
+          { num: '4', title: 'Submit Capstone for HOD Review', desc: 'Elevate to Level 4 Industry Tier' }
+        ],
+        actionBtn: 'Open Cloud Roadmap ↗',
+        actionFn: "window.SkillBridge.switchSystemTab('development')"
+      }
+    ];
+
+    container.innerHTML = gaps.map(g => `
+      <div class="gap-action-card">
+        <div class="gap-action-info" style="flex: 1;">
+          <h4>
+            <span>⚡</span> ${g.skill}
+            <span class="severity-badge ${g.severity === 'Critical Blocker' ? 'critical' : 'verified'}" style="font-size: 0.68rem; margin-left: 6px;">
+              ${g.deficit} (${g.severity})
+            </span>
+          </h4>
+          <p style="font-size: 0.76rem; color: var(--text-muted); margin: 0;">
+            Mandatory prerequisite for <strong>${g.targetCompany}</strong>. Follow the 4-step resolution pipeline to bridge deficit:
+          </p>
+
+          <div class="gap-action-steps">
+            ${g.steps.map(st => `
+              <div class="action-step-pill">
+                <strong>Step ${st.num}:</strong> ${st.title}
+                <div style="font-size: 0.65rem; color: var(--text-muted);">${st.desc}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div>
+          <button class="btn-action-sm" onclick="${g.actionFn}" style="padding: 10px 18px; font-size: 0.8rem; white-space: nowrap;">
+            ${g.actionBtn}
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderLiveSkillProgress() {
+    const container = document.getElementById('live-skill-progress-container');
+    if (!container) return;
+
+    const s = state.student;
+    const isRegistered = s && s.isRegistered;
+    const cloudScore = isRegistered ? (s.radarScores?.cloud || 40) : 40;
+    const targetCutoff = 75;
+    const pct = Math.min(100, Math.round((cloudScore / targetCutoff) * 100));
+
+    container.innerHTML = `
+      <div class="live-progress-card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h4 style="font-family: var(--font-heading); font-size: 1rem; font-weight: 800; color: var(--text-main); margin: 0 0 2px;">
+              Active Track: Docker Containerization &amp; Kubernetes Orchestration
+            </h4>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">
+              Current Proficiency: <strong style="color: #38bdf8;">${cloudScore}%</strong> / Target Cutoff: <strong>${targetCutoff}%</strong>
+            </span>
+          </div>
+          <span class="severity-badge ${cloudScore >= targetCutoff ? 'verified' : 'critical'}" style="font-size: 0.72rem;">
+            ${cloudScore >= targetCutoff ? 'Target Benchmark Cleared' : 'Bridging Active: ' + pct + '% Progress'}
+          </span>
+        </div>
+
+        <div class="live-progress-bar-wrap">
+          <div class="progress-header-row">
+            <span>Milestone Readiness Progress</span>
+            <strong>${pct}% towards corporate qualification</strong>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill-active" style="width: ${pct}%;"></div>
+          </div>
+        </div>
+
+        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">
+          Curriculum &amp; Virtual Lab Modules:
+        </div>
+        <div class="modules-checklist">
+          <div class="module-item ${cloudScore >= 40 ? 'completed' : 'in-progress'}">
+            <span class="mod-icon">${cloudScore >= 40 ? '✓' : '○'}</span>
+            <span>Module 1: Linux Namespaces &amp; CGroups Foundations</span>
+          </div>
+          <div class="module-item ${cloudScore >= 60 ? 'completed' : 'in-progress'}">
+            <span class="mod-icon">${cloudScore >= 60 ? '✓' : '⚡'}</span>
+            <span>Module 2: Dockerfile Multi-Stage Optimization</span>
+          </div>
+          <div class="module-item ${cloudScore >= 75 ? 'completed' : (cloudScore >= 50 ? 'in-progress' : '')}">
+            <span class="mod-icon">${cloudScore >= 75 ? '✓' : (cloudScore >= 50 ? '⚡' : '○')}</span>
+            <span>Module 3: Docker Compose &amp; Microservices Routing</span>
+          </div>
+          <div class="module-item ${cloudScore >= 85 ? 'completed' : ''}">
+            <span class="mod-icon">${cloudScore >= 85 ? '✓' : '🔒'}</span>
+            <span>Module 4: Kubernetes Pod Deployments &amp; Ingress Autoscaling</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderSkillProgressionStepper() {
+    const container = document.getElementById('skill-progression-stepper-container');
+    if (!container) return;
+
+    const s = state.student;
+    const isRegistered = s && s.isRegistered;
+    const cloudScore = isRegistered ? (s.radarScores?.cloud || 40) : 40;
+
+    const steps = [
+      {
+        num: '1',
+        title: 'Level 1: Self-Assessment Claim',
+        desc: 'Claimed: 40% • 30% Confidence (0.40x trust multiplier)',
+        status: 'active'
+      },
+      {
+        num: '2',
+        title: 'Level 2: Proctored Diagnostic Quiz',
+        desc: 'Quiz Score: 72% • 70% Confidence (0.75x trust multiplier)',
+        status: cloudScore >= 60 ? 'active' : 'current'
+      },
+      {
+        num: '3',
+        title: 'Level 3: Faculty Lab Verification',
+        desc: 'Capstone Verified • 88% Confidence (0.90x trust multiplier)',
+        status: cloudScore >= 75 ? 'active' : (cloudScore >= 60 ? 'current' : 'pending')
+      },
+      {
+        num: '4',
+        title: 'Level 4: Industry Recognized Credential',
+        desc: 'Authenticated Proof • 95% Confidence (1.00x trust multiplier)',
+        status: cloudScore >= 85 ? 'active' : 'pending'
+      }
+    ];
+
+    container.innerHTML = steps.map(st => `
+      <div class="stepper-node ${st.status}">
+        <div class="step-circle">${st.status === 'active' ? '✓' : st.num}</div>
+        <div class="step-content">
+          <h5>${st.title}</h5>
+          <p>${st.desc}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderSkillTimeline() {
+    const container = document.getElementById('skill-timeline-container');
+    if (!container) return;
+
+    const timeline = state.skillTimeline || [];
+    if (timeline.length === 0) {
+      container.innerHTML = '<div style="font-size: 0.75rem; color: var(--text-muted);">No timeline milestones logged yet.</div>';
+      return;
+    }
+
+    container.innerHTML = timeline.map(t => `
+      <div class="timeline-entry">
+        <div class="tl-icon">${t.icon || '✓'}</div>
+        <div class="tl-content">
+          <div class="tl-title-row">
+            <span class="tl-title">${t.title}</span>
+            <span class="tl-date">${t.date || 'Recent'}</span>
+          </div>
+          <div class="tl-sub">${t.detail || t.badge || ''}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderActivityFeed() {
+    const container = document.getElementById('skill-activity-feed-container');
+    if (!container) return;
+
+    const activities = state.skillActivity || [];
+    if (activities.length === 0) {
+      container.innerHTML = '<div style="font-size: 0.75rem; color: var(--text-muted);">No recent activities.</div>';
+      return;
+    }
+
+    container.innerHTML = activities.map(a => `
+      <div class="activity-feed-item">
+        <span class="act-dot" style="background: ${a.color || '#38bdf8'};"></span>
+        <span class="act-text">${a.text}</span>
+        <span class="act-time">${a.time}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderFacultyVerifications() {
+    const tbody = document.getElementById('faculty-verifications-tbody');
+    const badge = document.getElementById('faculty-pending-verifications-count');
+    if (!tbody) return;
+
+    const queue = state.pendingVerifications || [];
+    if (badge) badge.textContent = queue.length;
+
+    if (queue.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 36px 20px; color: var(--text-muted);">
+            <div style="font-size: 1.8rem; margin-bottom: 6px;">🎉</div>
+            <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-main);">All Evidence Submissions Verified!</div>
+            <div style="font-size: 0.78rem;">The student technical verification queue is currently clear.</div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = queue.map(item => `
+      <tr>
+        <td>
+          <div style="font-weight: 700; color: var(--text-main);">${item.student_name}</div>
+          <div style="font-size: 0.72rem; color: var(--text-muted);">Roll: ${item.roll_no} • ${item.department}</div>
+        </td>
+        <td>
+          <div style="font-weight: 700; color: #38bdf8;">${item.skill_name || item.skill_code}</div>
+          <span class="tier-pill ${item.level === 4 ? 'tier-4' : 'tier-3'}">
+            ${item.level === 4 ? 'Level 4: Industry (1.0x)' : 'Level 3: Faculty (0.9x)'}
+          </span>
+        </td>
+        <td>
+          <div style="font-weight: 600; color: var(--text-main);">${item.title}</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted);">Type: ${item.evidence_type.toUpperCase()} • Issuer: ${item.issuer}</div>
+        </td>
+        <td>
+          <strong style="color: #10b981;">${item.score_or_grade}</strong>
+        </td>
+        <td>
+          ${item.proof_url ? `<a href="${item.proof_url}" target="_blank" style="color: var(--accent, #00f5a0); text-decoration: underline; font-size: 0.75rem;">Inspect Artifact ↗</a>` : '<span style="color: var(--text-muted); font-size: 0.72rem;">Lab File On-File</span>'}
+        </td>
+        <td>
+          <span style="font-size: 0.72rem; color: var(--text-muted);">${item.date || 'Recent'}</span>
+        </td>
+        <td style="text-align: right;">
+          <div style="display: flex; gap: 6px; justify-content: flex-end;">
+            <button class="btn-verify-action" onclick="window.SkillBridge.handleFacultyVerificationAction('${item.id}', 'verify')">
+              ✓ Verify &amp; Endorse
+            </button>
+            <button class="btn-info-action" onclick="window.SkillBridge.handleFacultyVerificationAction('${item.id}', 'needs_info')">
+              Request Info
+            </button>
+            <button class="btn-reject-action" onclick="window.SkillBridge.handleFacultyVerificationAction('${item.id}', 'reject')">
+              Reject
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function openAddEvidenceModal(skillCode) {
+    const modal = document.getElementById('modal-add-evidence');
+    if (!modal) return;
+    if (skillCode) {
+      const sel = document.getElementById('evidence-skill-select');
+      if (sel) sel.value = skillCode;
+    }
+    modal.classList.add('active');
+  }
+
+  function closeAddEvidenceModal() {
+    const modal = document.getElementById('modal-add-evidence');
+    if (modal) modal.classList.remove('active');
+  }
+
+  async function submitEvidenceForm() {
+    const skillSelect = document.getElementById('evidence-skill-select');
+    const typeSelect = document.getElementById('evidence-type-select');
+    const titleInput = document.getElementById('evidence-title');
+    const issuerInput = document.getElementById('evidence-issuer');
+    const scoreInput = document.getElementById('evidence-score');
+    const linkInput = document.getElementById('evidence-link');
+    const descInput = document.getElementById('evidence-description');
+
+    if (!titleInput || !titleInput.value.trim()) {
+      showToast('Please enter an evidence title or project name.', 'alert');
+      return;
+    }
+
+    const skillCode = skillSelect ? skillSelect.value : 'cloud';
+    const evidenceType = typeSelect ? typeSelect.value : 'faculty';
+    const title = titleInput.value.trim();
+    const issuer = issuerInput ? issuerInput.value.trim() : '';
+    const score = scoreInput ? scoreInput.value.trim() : '85%';
+    const proofUrl = linkInput ? linkInput.value.trim() : '';
+    const description = descInput ? descInput.value.trim() : '';
+
+    const payload = {
+      skill_code: skillCode,
+      skill_name: getSkillNameByCode(skillCode),
+      evidence_type: evidenceType,
+      title,
+      issuer: issuer || (evidenceType === 'faculty' ? 'CSE Department Faculty' : 'Technical Portfolio'),
+      score_or_grade: score,
+      proof_url: proofUrl,
+      description
+    };
+
+    let apiSuccess = false;
+    if (ApiClient.isConnected) {
+      try {
+        const res = await ApiClient.submitEvidence(payload);
+        if (res && res.success) {
+          apiSuccess = true;
+        }
+      } catch (e) {
+        console.warn('Backend submitEvidence failed, fallback to local store:', e);
+      }
+    }
+
+    const isInstant = evidenceType === 'assessment';
+    const isSelf = evidenceType === 'self';
+    const newEvidence = {
+      id: `ev-${Date.now()}`,
+      skill_code: skillCode,
+      skill_name: payload.skill_name,
+      evidence_type: evidenceType,
+      tier: evidenceType === 'certificate' || evidenceType === 'project' ? 'tier_4_industry' : (evidenceType === 'faculty' ? 'tier_3_verified' : (isInstant ? 'tier_2_assessed' : 'tier_1_self_claimed')),
+      level: evidenceType === 'certificate' || evidenceType === 'project' ? 4 : (evidenceType === 'faculty' ? 3 : (isInstant ? 2 : 1)),
+      title,
+      issuer: payload.issuer,
+      score,
+      verified_by: isInstant ? 'Platform Automated Engine' : (isSelf ? 'Self Reported' : 'Pending Faculty Review'),
+      status: isInstant ? 'verified' : (isSelf ? 'self_claimed' : 'pending'),
+      confidence: isInstant ? 75 : (isSelf ? 35 : (evidenceType === 'faculty' ? 88 : 95)),
+      proof_url: proofUrl,
+      date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    };
+
+    if (!state.evidenceList) state.evidenceList = [];
+    state.evidenceList.unshift(newEvidence);
+
+    if (newEvidence.status === 'pending') {
+      const qItem = {
+        id: `pv-${Date.now()}`,
+        evidence_id: newEvidence.id,
+        student_id: state.student?.id || 's-1789494444911',
+        student_name: state.student?.name || 'Hariprasad ps',
+        roll_no: state.student?.rollNo || '26CS263',
+        department: state.student?.department || 'Computer Science & Engineering',
+        skill_code: skillCode,
+        skill_name: payload.skill_name,
+        evidence_type: evidenceType,
+        tier_requested: newEvidence.tier,
+        level: newEvidence.level,
+        title,
+        issuer: payload.issuer,
+        score_or_grade: score,
+        proof_url: proofUrl,
+        date: newEvidence.date,
+        status: 'pending'
+      };
+      if (!state.pendingVerifications) state.pendingVerifications = [];
+      state.pendingVerifications.unshift(qItem);
+      const facBadge = document.getElementById('faculty-pending-verifications-count');
+      if (facBadge) facBadge.textContent = state.pendingVerifications.length;
+    }
+
+    if (!state.skillActivity) state.skillActivity = [];
+    state.skillActivity.unshift({
+      id: `act-${Date.now()}`,
+      time: 'Just now',
+      text: newEvidence.status === 'pending'
+        ? `Submitted "${title}" for ${payload.skill_name} (Queued for Faculty Verification)`
+        : `Attached evidence: "${title}" for ${payload.skill_name}`,
+      type: evidenceType,
+      color: newEvidence.status === 'pending' ? '#f59e0b' : '#10b981'
+    });
+
+    if (!state.skillTimeline) state.skillTimeline = [];
+    state.skillTimeline.unshift({
+      id: `tl-${Date.now()}`,
+      date: newEvidence.date,
+      title: title,
+      type: evidenceType.toUpperCase(),
+      level: newEvidence.level,
+      badge: newEvidence.status === 'verified' ? 'Verified' : 'Pending Verification',
+      icon: newEvidence.status === 'verified' ? '✓' : '⏳',
+      detail: `Evidence for ${payload.skill_name}.`
+    });
+
+    closeAddEvidenceModal();
+    updateExecutiveMetrics();
+    renderEvidenceSection();
+    renderFacultyVerifications();
+
+    if (newEvidence.status === 'pending') {
+      showToast('🚀 Evidence submitted! Queued in Faculty Review Queue for technical endorsement.', 'info');
+    } else {
+      showToast('✅ Evidence verified and recorded successfully!', 'success');
+    }
+  }
+
+  function openViewEvidenceModal(skillCode) {
+    const modal = document.getElementById('modal-view-evidence');
+    if (!modal) return;
+
+    const skillName = getSkillNameByCode(skillCode);
+    const titleEl = document.getElementById('view-evidence-skill-title');
+    const subEl = document.getElementById('view-evidence-skill-subtitle');
+    const confEl = document.getElementById('view-evidence-confidence-stat');
+    const listEl = document.getElementById('view-evidence-items-list');
+
+    if (titleEl) titleEl.textContent = `${skillName} — Verifiable Evidence`;
+    if (subEl) subEl.textContent = `Audit trail of proctored assessments, faculty reviews, and industry certificates for ${skillName}.`;
+
+    const items = (state.evidenceList || []).filter(e => e.skill_code === skillCode);
+    let avgConf = 85;
+    if (items.length > 0) {
+      avgConf = Math.round(items.reduce((acc, curr) => acc + (curr.confidence || 50), 0) / items.length);
+    }
+    if (confEl) confEl.textContent = `${avgConf}% (${avgConf >= 85 ? 'Tier 4 Industry' : (avgConf >= 70 ? 'Tier 3 Faculty' : 'Tier 2 Assessed')})`;
+
+    if (listEl) {
+      if (items.length === 0) {
+        listEl.innerHTML = `
+          <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.8rem;">
+            No direct evidence attached for this skill yet. Click <strong>"+ Attach More Proof"</strong> above to submit a project, quiz, or faculty endorsement.
+          </div>
+        `;
+      } else {
+        listEl.innerHTML = items.map(it => `
+          <div class="activity-feed-item" style="margin-bottom: 8px; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-weight: 700; color: var(--text-main); font-size: 0.85rem;">
+                ${it.title}
+              </div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                Issuer: <strong>${it.issuer}</strong> • Score: <strong>${it.score}</strong> • Date: ${it.date}
+              </div>
+              <div style="font-size: 0.7rem; color: #10b981; margin-top: 2px;">
+                Verified by: ${it.verified_by || 'Verified'}
+              </div>
+            </div>
+            <div>
+              <span class="tier-pill ${it.level === 4 ? 'tier-4' : (it.level === 3 ? 'tier-3' : (it.level === 2 ? 'tier-2' : 'tier-1'))}">
+                Level ${it.level || 3}
+              </span>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    modal.classList.add('active');
+  }
+
+  function closeViewEvidenceModal() {
+    const modal = document.getElementById('modal-view-evidence');
+    if (modal) modal.classList.remove('active');
+  }
+
+  function openWhyReadinessModal() {
+    const modal = document.getElementById('modal-why-readiness');
+    if (!modal) return;
+
+    const s = state.student;
+    const isRegistered = s && s.isRegistered;
+    const readiness = isRegistered ? s.overallReadiness : 78;
+    const radar = s?.radarScores || { prog: 75, web: 75, db: 70, cloud: 40, system: 50, soft: 80 };
+
+    const headerScore = document.getElementById('why-score-header');
+    if (headerScore) headerScore.textContent = `${readiness}%`;
+
+    const blockerBox = document.getElementById('why-blocker-box');
+    const blockerText = document.getElementById('why-blocker-text');
+
+    const cloudScore = radar.cloud || 40;
+    if (cloudScore < 75) {
+      if (blockerBox) blockerBox.style.display = 'block';
+      if (blockerText) {
+        blockerText.innerHTML = `
+          <strong>Cloud &amp; Distributed Systems (${cloudScore}%)</strong> has a deficit of <strong>-${75 - cloudScore}%</strong> against corporate cutoffs. Because it is currently at <strong>Level 1 (Self Declared, 0.40x trust multiplier)</strong>, it contributes only <strong>+${(cloudScore * 0.40 * 0.2).toFixed(1)}%</strong> instead of <strong>+14.0%</strong>. Clearing the Docker Microservices lab promotes it to Level 3 Verified and will boost your overall readiness by <strong>+10.8%</strong>!
+        `;
+      }
+    } else {
+      if (blockerBox) blockerBox.style.display = 'none';
+    }
+
+    const tbody = document.getElementById('why-readiness-tbody');
+    if (tbody) {
+      const vectors = [
+        { name: 'Programming & Data Structures', cutoff: '80%', level: radar.prog || 75, tier: 'Level 3 Faculty', mult: 0.90, weight: 0.20, conf: '88%' },
+        { name: 'Relational DBMS & SQL Optimization', cutoff: '70%', level: radar.db || 70, tier: 'Level 4 Industry', mult: 1.00, weight: 0.20, conf: '95%' },
+        { name: 'Web Architecture & RESTful APIs', cutoff: '85%', level: radar.web || 75, tier: 'Level 2 Assessment', mult: 0.75, weight: 0.15, conf: '75%' },
+        { name: 'Cloud & Distributed Systems', cutoff: '75%', level: radar.cloud || 40, tier: radar.cloud >= 75 ? 'Level 3 Faculty' : 'Level 1 Self Claim', mult: radar.cloud >= 75 ? 0.90 : 0.40, weight: 0.20, conf: radar.cloud >= 75 ? '88%' : '35%' },
+        { name: 'System Design & Scalability', cutoff: '70%', level: radar.system || 50, tier: 'Level 2 Assessment', mult: 0.75, weight: 0.15, conf: '70%' },
+        { name: 'Analytical & Behavioral Soft Skills', cutoff: '75%', level: radar.soft || 80, tier: 'Level 3 Faculty', mult: 0.90, weight: 0.10, conf: '85%' }
+      ];
+
+      tbody.innerHTML = vectors.map(v => {
+        const contrib = (v.level * v.mult * v.weight).toFixed(1);
+        const isMet = v.level >= parseInt(v.cutoff);
+        return `
+          <tr>
+            <td><strong>${v.name}</strong></td>
+            <td>${v.cutoff}</td>
+            <td><span style="color: ${isMet ? '#10b981' : '#ef4444'}; font-weight: 700;">${v.level}%</span></td>
+            <td><span class="trust-badge ${v.mult >= 0.9 ? 'verified' : (v.mult >= 0.75 ? 'assessed' : 'claimed')}">${v.tier} (${v.mult.toFixed(2)}x)</span></td>
+            <td>${v.conf}</td>
+            <td style="text-align: right;"><strong style="color: #0284c7;">+${contrib}%</strong></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    modal.classList.add('active');
+  }
+
+  function closeWhyReadinessModal() {
+    const modal = document.getElementById('modal-why-readiness');
+    if (modal) modal.classList.remove('active');
+  }
+
+  function openSkillPassportModal() {
+    const modal = document.getElementById('modal-skill-passport');
+    if (!modal) return;
+
+    const s = state.student;
+    const isRegistered = s && s.isRegistered;
+    const name = isRegistered ? s.name : 'Hariprasad PS';
+    const roll = isRegistered ? s.rollNo : '26CS263';
+    const inst = isRegistered ? (s.institution || 'National Institute of Technology') : 'National Institute of Technology';
+    const cgpa = isRegistered ? (s.cgpa || 8.85) : 8.85;
+    const readiness = isRegistered ? s.overallReadiness : 78;
+
+    const nameEl = document.getElementById('passport-student-name');
+    const rollEl = document.getElementById('passport-student-roll');
+    const instEl = document.getElementById('passport-student-inst');
+    const readEl = document.getElementById('passport-readiness-num');
+    const hashEl = document.getElementById('passport-hash');
+    const gridEl = document.getElementById('passport-skills-grid');
+
+    if (nameEl) nameEl.textContent = name;
+    if (rollEl) rollEl.textContent = `Roll No: ${roll} • Dept of ${s?.department || 'Computer Science & Engineering'}`;
+    if (instEl) instEl.textContent = `${inst} • CGPA: ${cgpa}`;
+    if (readEl) readEl.textContent = `${readiness}%`;
+    if (hashEl) hashEl.textContent = `0x9F82A478B0C1E5...SECURE-SHA256`;
+
+    if (gridEl) {
+      const skills = [
+        { name: 'Programming & Data Structures', tier: 'Level 3 Verified', level: 'Advanced (82%)', color: '#10b981' },
+        { name: 'Relational DBMS & Query Tuning', tier: 'Level 4 Industry', level: 'Expert (100%)', color: '#a855f7' },
+        { name: 'Web & RESTful Architecture', tier: 'Level 2 Assessed', level: 'Proficient (75%)', color: '#0284c7' },
+        { name: 'Cloud & Distributed Systems', tier: s?.radarScores?.cloud >= 75 ? 'Level 3 Verified' : 'Level 1 Baseline', level: `${s?.radarScores?.cloud || 40}%`, color: s?.radarScores?.cloud >= 75 ? '#10b981' : '#f59e0b' }
+      ];
+
+      gridEl.innerHTML = skills.map(sk => `
+        <div class="passport-skill-chip">
+          <div>
+            <div class="passport-skill-name">${sk.name}</div>
+            <div style="font-size: 0.68rem; color: #94a3b8;">${sk.level}</div>
+          </div>
+          <span class="passport-skill-tier" style="background: rgba(255,255,255,0.08); color: ${sk.color}; border: 1px solid ${sk.color}; font-weight: 700;">
+            ${sk.tier}
+          </span>
+        </div>
+      `).join('');
+    }
+
+    modal.classList.add('active');
+  }
+
+  function closeSkillPassportModal() {
+    const modal = document.getElementById('modal-skill-passport');
+    if (modal) modal.classList.remove('active');
+  }
+
+  function copyPassportLink() {
+    const url = window.location.origin + window.location.pathname + '#passport-' + (state.student?.rollNo || '26CS263');
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url);
+      showToast('📋 Verifiable Skill Passport link copied to clipboard!', 'success');
+    } else {
+      showToast(`Verification Link: ${url}`, 'info');
+    }
+  }
+
+  async function handleFacultyVerificationAction(verificationId, action, notes = '') {
+    const reviewerName = 'Dr. S. K. Ramanathan (HOD CSE)';
+    let apiSuccess = false;
+
+    if (ApiClient.isConnected) {
+      try {
+        const res = await ApiClient.actionVerification(verificationId, action, notes, reviewerName);
+        if (res && res.success) {
+          apiSuccess = true;
+        }
+      } catch (e) {
+        console.warn('Backend actionVerification failed, fallback local:', e);
+      }
+    }
+
+    const qIndex = (state.pendingVerifications || []).findIndex(v => v.id === verificationId);
+    if (qIndex !== -1) {
+      const item = state.pendingVerifications[qIndex];
+      state.pendingVerifications.splice(qIndex, 1);
+
+      if (action === 'verify') {
+        const ev = (state.evidenceList || []).find(e => e.id === item.evidence_id || (e.skill_code === item.skill_code && e.title === item.title));
+        if (ev) {
+          ev.status = 'verified';
+          ev.verified_by = reviewerName;
+          ev.confidence = 90;
+        }
+
+        if (state.student) {
+          state.student.overallReadiness = Math.min(98, (state.student.overallReadiness || 70) + 5);
+          state.student.verifiedBadgesCount = (state.student.verifiedBadgesCount || 2) + 1;
+          if (item.skill_code.includes('cloud') || item.skill_code.includes('docker')) {
+            state.student.radarScores.cloud = Math.min(95, (state.student.radarScores.cloud || 40) + 25);
+            state.student.criticalGapsCount = Math.max(0, (state.student.criticalGapsCount || 1) - 1);
+          } else if (item.skill_code.includes('prog') || item.skill_code.includes('python')) {
+            state.student.radarScores.prog = Math.min(98, (state.student.radarScores.prog || 75) + 10);
+          }
+        }
+
+        if (!state.skillActivity) state.skillActivity = [];
+        state.skillActivity.unshift({
+          id: `act-${Date.now()}`,
+          time: 'Just now',
+          text: `"${item.title}" officially verified by ${reviewerName}! Skill promoted to Level ${item.level}.`,
+          type: 'faculty',
+          color: '#10b981'
+        });
+
+        if (!state.skillTimeline) state.skillTimeline = [];
+        state.skillTimeline.unshift({
+          id: `tl-${Date.now()}`,
+          date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+          title: item.title,
+          type: item.level === 4 ? 'INDUSTRY VERIFIED' : 'FACULTY VERIFIED',
+          level: item.level,
+          badge: item.level === 4 ? 'Industry Credential' : 'Faculty Endorsed',
+          icon: '✓',
+          detail: `Verified by ${reviewerName}. Lab demonstration and code quality verified.`
+        });
+
+        showToast(`🎉 "${item.title}" verified! Student skill elevated to Level ${item.level}. Readiness boosted!`, 'success');
+      } else if (action === 'reject') {
+        showToast(`Evidence submission for "${item.title}" was rejected.`, 'info');
+      } else {
+        showToast(`Requested additional technical details for "${item.title}".`, 'info');
+      }
+    }
+
+    const facBadge = document.getElementById('faculty-pending-verifications-count');
+    if (facBadge) facBadge.textContent = state.pendingVerifications.length;
+
+    updateExecutiveMetrics();
+    renderEvidenceSection();
+    renderFacultyVerifications();
+    renderRadarChart(state.selectedCompanyId);
+    renderCompanyMatchingList();
+    renderSkillGapSection();
+  }
+
+  // ---------------------------------------------------------------------------
   // 6. COMPANY PERSPECTIVE (Recruiter Candidate Matching View)
   // ---------------------------------------------------------------------------
 
@@ -2225,6 +3501,18 @@
       const count = isRegistered ? state.companies.filter(c => c.matchScore >= 85).length : 0;
       highMatchEl.textContent = count;
     }
+
+    const confEl = document.getElementById('metric-evidence-confidence');
+    const confTierEl = document.getElementById('metric-evidence-tier-badge');
+    if (confEl) {
+      const conf = isRegistered ? (state.evidenceConfidence || 78) : 0;
+      confEl.textContent = `${conf}%`;
+    }
+    if (confTierEl) {
+      const conf = isRegistered ? (state.evidenceConfidence || 78) : 0;
+      const tierTxt = conf >= 85 ? 'Tier 4 Industry' : (conf >= 70 ? 'Tier 3 Verified' : (conf >= 50 ? 'Tier 2 Assessed' : 'Tier 1 Claimed'));
+      confTierEl.textContent = isRegistered ? tierTxt : 'Tier 1 Baseline';
+    }
   }
 
   function openCertificateModal(skillName, customHash) {
@@ -2655,6 +3943,8 @@
         renderRoadmaps();
         renderLabs();
         renderMentors();
+      } else if (tab === 'evidence') {
+        renderEvidenceSection();
       }
     },
 
@@ -2688,6 +3978,7 @@
       if (subtab === 'curriculum-gap') renderSyllabusProposals();
       if (subtab === 'collaboration') renderFacultyCollaboration();
       if (subtab === 'fdps') renderFacultyFDPs();
+      if (subtab === 'verifications') renderFacultyVerifications();
     },
 
     setFacultyStudentFilter: function (filter) {
@@ -2909,6 +4200,58 @@
       recalculateCompanyMatches(student);
     },
 
+    openAddEvidenceModal: function (skillCode) {
+      openAddEvidenceModal(skillCode);
+    },
+
+    closeAddEvidenceModal: function () {
+      closeAddEvidenceModal();
+    },
+
+    submitEvidenceForm: function () {
+      submitEvidenceForm();
+    },
+
+    openViewEvidenceModal: function (skillCode) {
+      openViewEvidenceModal(skillCode);
+    },
+
+    closeViewEvidenceModal: function () {
+      closeViewEvidenceModal();
+    },
+
+    openWhyReadinessModal: function () {
+      openWhyReadinessModal();
+    },
+
+    closeWhyReadinessModal: function () {
+      closeWhyReadinessModal();
+    },
+
+    openSkillPassportModal: function () {
+      openSkillPassportModal();
+    },
+
+    closeSkillPassportModal: function () {
+      closeSkillPassportModal();
+    },
+
+    copyPassportLink: function () {
+      copyPassportLink();
+    },
+
+    handleFacultyVerificationAction: function (id, action, notes) {
+      handleFacultyVerificationAction(id, action, notes);
+    },
+
+    renderEvidenceSection: function () {
+      renderEvidenceSection();
+    },
+
+    renderFacultyVerifications: function () {
+      renderFacultyVerifications();
+    },
+
     api: ApiClient
   };
 
@@ -2947,6 +4290,8 @@
     renderSyllabusProposals();
     renderFacultyCollaboration();
     renderFacultyFDPs();
+    renderEvidenceSection();
+    renderFacultyVerifications();
     window.SkillBridge.initAccent();
     window.SkillBridge.initTheme();
     renderPurpleAdminCharts();

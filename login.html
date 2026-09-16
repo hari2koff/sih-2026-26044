@@ -196,8 +196,8 @@
 
       <form class="login-form" onsubmit="handleLoginSubmit(event)">
         <div class="login-field">
-          <label for="login-user">Username / University Roll No</label>
-          <input type="text" id="login-user" placeholder="e.g. 2024CSE1099" required autofocus style="font-family: var(--font-mono, monospace); font-weight: 700; text-transform: uppercase;">
+          <label for="login-user">Username / University Roll No or Student User ID</label>
+          <input type="text" id="login-user" placeholder="e.g. 26CS263 or u-1789494444911" required autofocus style="font-family: var(--font-mono, monospace); font-weight: 700; text-transform: uppercase;">
         </div>
 
         <div class="login-field">
@@ -205,7 +205,7 @@
             <label for="login-pass">Password / Access Key</label>
             <span onclick="togglePasswordVisibility()" style="font-size: 0.75rem; color: var(--accent, #00f5a0); cursor: pointer;" id="toggle-pass-text">Show Password</span>
           </div>
-          <input type="password" id="login-pass" placeholder="Enter your password" required>
+          <input type="password" id="login-pass" placeholder="Enter your password (e.g. SKILL-XXXX-YY)" required>
         </div>
 
         <button type="submit" id="login-btn" class="btn-login-submit">
@@ -269,10 +269,15 @@
           }
 
           if (studentRec) {
+            const userIdVal = credsRec.user_id || credsRec.userId || studentRec.user_id || studentRec.id;
             const sessionData = {
               student: {
                 isRegistered: true,
                 id: studentRec.id,
+                student_id: studentRec.id,
+                user_id: userIdVal,
+                username: credsRec.username || studentRec.roll_no,
+                password: password,
                 name: studentRec.name,
                 rollNo: studentRec.roll_no,
                 institution: studentRec.institution_name,
@@ -293,7 +298,11 @@
                 targetCompany: studentRec.target_company
               },
               credentials: {
-                username: username,
+                user_id: userIdVal,
+                userId: userIdVal,
+                student_id: studentRec.id,
+                username: credsRec.username || username,
+                roll_no: studentRec.roll_no || username,
                 password: password,
                 name: studentRec.name
               }
@@ -307,7 +316,7 @@
           }, 800);
           return;
         } else {
-          showToast('⚠️ ' + (json.message || 'Invalid Username or Password.'), 'error');
+          showToast('⚠️ ' + (json.message || 'Invalid Username, User ID, or Password.'), 'error');
         }
       } catch (err) {
         console.warn('Backend server unreachable, checking local session credentials:', err);
@@ -316,9 +325,18 @@
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
-            if (parsed.credentials && 
-                parsed.credentials.username.toUpperCase() === username && 
-                parsed.credentials.password === password) {
+            const userMatch = (parsed.credentials?.username && parsed.credentials.username.toUpperCase() === username) ||
+                              (parsed.credentials?.user_id && parsed.credentials.user_id.toUpperCase() === username) ||
+                              (parsed.student?.id && parsed.student.id.toUpperCase() === username) ||
+                              (parsed.student?.user_id && parsed.student.user_id.toUpperCase() === username) ||
+                              (parsed.student?.rollNo && parsed.student.rollNo.toUpperCase() === username);
+
+            const passMatch = parsed.credentials && (
+              parsed.credentials.password === password ||
+              parsed.credentials.password.trim().toUpperCase() === password.toUpperCase()
+            );
+
+            if (userMatch && passMatch) {
               showToast('🔓 Authenticated via local session! Launching...', 'success');
               setTimeout(() => {
                 window.location.href = 'index.html';

@@ -122,7 +122,25 @@
             <span id="metric-readiness" class="metric-value">78%</span>
             <span class="metric-trend up">↑ +6% this month</span>
           </div>
-          <div class="metric-hint">Calculated across 6 corporate benchmark vectors</div>
+          <div class="metric-hint" style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+            <span>6 Corporate benchmark vectors</span>
+            <button class="metric-link-btn" onclick="window.SkillBridge.openWhyReadinessModal()" title="View full mathematical breakdown of this readiness score">Why 78%? ℹ️</button>
+          </div>
+        </div>
+
+        <div class="metric-card cyan">
+          <div class="metric-header">
+            <span class="metric-title">Evidence Confidence</span>
+            <div class="metric-icon-wrap">🛡️</div>
+          </div>
+          <div class="metric-value-row">
+            <span id="metric-evidence-confidence" class="metric-value">88%</span>
+            <span id="metric-evidence-tier-badge" class="metric-trend verified">Tier 3 Verified</span>
+          </div>
+          <div class="metric-hint" style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+            <span>Dual-Metric: 88% verified vs claims</span>
+            <button class="metric-link-btn" onclick="window.SkillBridge.openSkillPassportModal()" title="Open Verifiable Digital Skill Passport">Passport 🪪</button>
+          </div>
         </div>
 
         <div class="metric-card emerald">
@@ -146,13 +164,13 @@
             <span id="metric-critical-gaps" class="metric-value">2</span>
             <span class="metric-trend alert">Action Required</span>
           </div>
-          <div class="metric-hint">Docker & Kubernetes for Tier 1 Cloud roles</div>
+          <div class="metric-hint">Docker &amp; Kubernetes for Tier 1 Cloud roles</div>
         </div>
 
         <div class="metric-card purple">
           <div class="metric-header">
             <span class="metric-title">Verified Badges</span>
-            <div class="metric-icon-wrap">🛡️</div>
+            <div class="metric-icon-wrap">🏅</div>
           </div>
           <div class="metric-value-row">
             <span id="metric-badges" class="metric-value">4</span>
@@ -174,7 +192,11 @@
         </button>
         <button class="system-tab-btn" data-tab="development" onclick="window.SkillBridge.switchSystemTab('development')">
           <span>3. Skill Development System</span>
-          <span class="badge-count">Roadmaps & Labs</span>
+          <span class="badge-count">Roadmaps &amp; Labs</span>
+        </button>
+        <button class="system-tab-btn" data-tab="evidence" onclick="window.SkillBridge.switchSystemTab('evidence')">
+          <span>4. Verified Skill Evidence &amp; Tracker</span>
+          <span class="badge-count" id="student-evidence-count-badge" style="background: rgba(14, 165, 233, 0.2); color: #0284c7; border: 1px solid rgba(14, 165, 233, 0.4);">4 Verified</span>
         </button>
       </nav>
 
@@ -393,6 +415,162 @@
           <div id="mentors-container" class="mentors-grid"></div>
         </div>
       </section>
+
+      <!-- SYSTEM 4: VERIFIED SKILL EVIDENCE & LIVE TRACKER -->
+      <section id="sec-evidence" class="system-section">
+        <div class="section-header-row">
+          <div>
+            <h2><span>🛡️</span> Evidence-Backed Skill Verification &amp; Live Tracking</h2>
+            <p>Transforming self-assessed claims into verified technical evidence across 4 institutional trust tiers. Real-time skill development tracking, empirical progression steppers, and verifiable digital passports.</p>
+          </div>
+          <div class="header-action-buttons" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="action-btn-neon" onclick="window.SkillBridge.openAddEvidenceModal()">
+              <span>➕</span> Add Evidence
+            </button>
+            <button class="action-btn-outline" onclick="window.SkillBridge.openSkillPassportModal()">
+              <span>🪪</span> Digital Skill Passport
+            </button>
+            <button class="action-btn-outline" onclick="window.SkillBridge.openWhyReadinessModal()">
+              <span>📊</span> Explain Score (Why 78%?)
+            </button>
+          </div>
+        </div>
+
+        <!-- Target Role & Real-Time Match Tracker Banner -->
+        <div class="target-role-banner" id="target-role-widget">
+          <div class="target-role-header">
+            <div class="target-role-title-wrap">
+              <span class="role-badge">Target Role Milestone</span>
+              <h3 id="target-role-title">☁ Cloud Backend Developer &amp; Distributed Systems</h3>
+              <p id="target-role-company-sub">Target Benchmark: <strong>TechNova Solutions</strong> • Cutoff: <strong>75%</strong></p>
+            </div>
+            <div class="target-role-stats">
+              <div class="role-stat-item">
+                <span class="role-stat-label">Current Verified Level</span>
+                <span id="target-role-current-level" class="role-stat-val primary">68%</span>
+              </div>
+              <div class="role-stat-item">
+                <span class="role-stat-label">Role Target Cutoff</span>
+                <span id="target-role-cutoff-level" class="role-stat-val">75%</span>
+              </div>
+              <div class="role-stat-item">
+                <span class="role-stat-label">Readiness Gap (Δ)</span>
+                <span id="target-role-gap-val" class="role-stat-val alert">-7%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="target-role-reqs-row">
+            <div class="reqs-label">Mandatory Role Competencies:</div>
+            <div class="reqs-checklist" id="target-role-checklist">
+              <span class="req-chip satisfied">✓ Python &amp; Data Structures (82% / Level 3)</span>
+              <span class="req-chip satisfied">✓ PostgreSQL &amp; DB Tuning (78% / Level 4)</span>
+              <span class="req-chip satisfied">✓ REST &amp; Microservices (75% / Level 2)</span>
+              <span class="req-chip deficit">✕ Docker &amp; Cloud Containers (40% / Level 1 • Gap -35%)</span>
+            </div>
+            <div class="reqs-summary-badge" id="target-role-summary-badge">3 of 4 Requirements Satisfied (75%)</div>
+          </div>
+        </div>
+
+        <!-- Main Evidence Grid (2-Column Layout) -->
+        <div class="evidence-main-layout">
+          <!-- Left Main Column -->
+          <div class="evidence-left-col">
+            <!-- 1. Evidence-Backed Skill Competencies -->
+            <div class="evidence-card-panel">
+              <div class="panel-header-row">
+                <div>
+                  <h3><span>📊</span> Evidence-Backed Competencies (WVSE-v2 Model)</h3>
+                  <p>Each competency score is weighted by verifiable evidence tier rather than subjective self-claims.</p>
+                </div>
+                <div class="evidence-tiers-legend">
+                  <span class="tier-pill tier-4" title="External Certificate / Industry Project (1.00x multiplier)">Level 4: Industry (1.0x)</span>
+                  <span class="tier-pill tier-3" title="University Department / Lab Faculty Endorsed (0.90x multiplier)">Level 3: Faculty (0.9x)</span>
+                  <span class="tier-pill tier-2" title="Platform Proctored Assessment (0.75x multiplier)">Level 2: Assessed (0.75x)</span>
+                  <span class="tier-pill tier-1" title="Initial Self Declaration (0.40x multiplier)">Level 1: Self (0.4x)</span>
+                </div>
+              </div>
+
+              <div id="evidence-competencies-grid" class="evidence-competencies-grid">
+                <!-- Dynamically Rendered by script.js -->
+              </div>
+            </div>
+
+            <!-- 2. Skill Gap -> Action Matrix -->
+            <div class="evidence-card-panel" style="margin-top: 24px;">
+              <div class="panel-header-row">
+                <div>
+                  <h3><span>⚡</span> Critical Skill Gap → Action Matrix</h3>
+                  <p>Step-by-step roadmap to bridge your primary blockers and unlock Tier 1 placement eligibility.</p>
+                </div>
+                <span class="severity-badge critical" id="critical-gaps-action-badge">2 Critical Gaps</span>
+              </div>
+
+              <div id="skill-gap-action-matrix" class="gap-action-matrix">
+                <!-- Dynamically Rendered by script.js -->
+              </div>
+            </div>
+
+            <!-- 3. Live Skill Progress Tracker -->
+            <div class="evidence-card-panel" style="margin-top: 24px;">
+              <div class="panel-header-row">
+                <div>
+                  <h3><span>📈</span> Live Skill Progress &amp; Milestone Roadmap</h3>
+                  <p>Tracking active skill progression from baseline deficit to certified corporate readiness.</p>
+                </div>
+                <button class="btn-action-sm" onclick="window.SkillBridge.switchSystemTab('development')">Browse All Labs ↗</button>
+              </div>
+
+              <div id="live-skill-progress-container">
+                <!-- Dynamically Rendered by script.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Sidebar Column -->
+          <aside class="evidence-right-col">
+            <!-- 4. Evidence -> Skill Score Progression Stepper -->
+            <div class="evidence-card-panel">
+              <div class="panel-header-row">
+                <div>
+                  <h3><span>🪜</span> Evidence Progression Stepper</h3>
+                  <p>Skill Maturation Ladder: Moving claims to industry trust.</p>
+                </div>
+              </div>
+              <div id="skill-progression-stepper-container" class="progression-stepper-wrap">
+                <!-- Dynamically Rendered by script.js -->
+              </div>
+            </div>
+
+            <!-- 5. Chronological Skill Development Timeline -->
+            <div class="evidence-card-panel" style="margin-top: 24px;">
+              <div class="panel-header-row">
+                <div>
+                  <h3><span>⏳</span> Skill Verification Timeline</h3>
+                  <p>Verifiable chronological record of milestone completions.</p>
+                </div>
+              </div>
+              <div id="skill-timeline-container" class="timeline-container">
+                <!-- Dynamically Rendered by script.js -->
+              </div>
+            </div>
+
+            <!-- 6. Recent Skill Activity Live Feed -->
+            <div class="evidence-card-panel" style="margin-top: 24px;">
+              <div class="panel-header-row">
+                <div>
+                  <h3><span>⚡</span> Live Activity Feed</h3>
+                  <p>Real-time audit log of student actions &amp; verifications.</p>
+                </div>
+                <span class="live-pulse-dot" title="Live stream active"></span>
+              </div>
+              <div id="skill-activity-feed-container" class="activity-feed-container">
+                <!-- Dynamically Rendered by script.js -->
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
     </div>
 
     <!-- ====================================================================
@@ -466,6 +644,10 @@
         </button>
         <button class="faculty-subtab-btn" data-facultytab="fdps" onclick="window.SkillBridge.switchFacultySubtab('fdps')">
           <span>🎓</span> Corporate FDPs &amp; Training
+        </button>
+        <button class="faculty-subtab-btn" data-facultytab="verifications" onclick="window.SkillBridge.switchFacultySubtab('verifications')">
+          <span>🛡️</span> Pending Evidence Verifications
+          <span id="faculty-pending-verifications-count" class="badge-count" style="background: #ef4444; color: #fff; margin-left: 6px; font-weight: 800; border-radius: 9999px; padding: 2px 7px;">4</span>
         </button>
       </nav>
 
@@ -938,6 +1120,40 @@
               </table>
             </div>
           </section>
+        </div>
+      </div>
+
+      <!-- 3F: Pending Evidence Verifications Panel -->
+      <div id="faculty-subpanel-verifications" class="faculty-subpanel">
+        <div class="dean-proposal-card">
+          <div class="section-header-row" style="margin-bottom: 20px;">
+            <div>
+              <h3><span>🛡️</span> Faculty Verification Queue &amp; Technical Endorsement</h3>
+              <p>Review student-submitted technical evidence (lab projects, certificates, GitHub repos) to endorse competency upgrades to Level 3 (Faculty Verified, 0.90x Multiplier) or Level 4 (Industry Credential, 1.00x Multiplier).</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <span class="trust-badge verified" style="font-size: 0.8rem; padding: 6px 12px;">Reviewer: Dr. S. K. Ramanathan (HOD CSE)</span>
+            </div>
+          </div>
+
+          <div class="candidates-table-wrapper">
+            <table class="candidates-table">
+              <thead>
+                <tr>
+                  <th>Student Candidate</th>
+                  <th>Skill &amp; Level Requested</th>
+                  <th>Evidence Title &amp; Details</th>
+                  <th>Score / Grade</th>
+                  <th>Proof Link / Repo</th>
+                  <th>Submission Date</th>
+                  <th style="text-align: right;">Review Action</th>
+                </tr>
+              </thead>
+              <tbody id="faculty-verifications-tbody">
+                <!-- Dynamically rendered by script.js -->
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -1440,6 +1656,10 @@
 
           <div class="credentials-vault-box">
             <div class="vault-row">
+              <span class="vault-label">STUDENT USER ID:</span>
+              <strong class="vault-value" id="cred-display-userid" style="color: #60a5fa;">u-1789494444911</strong>
+            </div>
+            <div class="vault-row">
               <span class="vault-label">USERNAME / ROLL NO:</span>
               <strong class="vault-value" id="cred-display-username">2024CSE1055</strong>
             </div>
@@ -1482,8 +1702,8 @@
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>Username or Roll Number</label>
-          <input id="login-username" type="text" class="form-input" placeholder="e.g. 2024CSE1055" style="font-family: monospace; font-weight: 700;">
+          <label>Username, Roll No, or Student User ID</label>
+          <input id="login-username" type="text" class="form-input" placeholder="e.g. 26CS263 or u-1789494444911" style="font-family: monospace; font-weight: 700;">
         </div>
 
         <div class="form-group">
@@ -1501,6 +1721,248 @@
         <button class="btn-action-sm" style="padding: 9px 24px;" onclick="window.SkillBridge.submitStudentLogin()">
           Login to Live Tracking 🚀
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       1. ADD SKILL EVIDENCE MODAL
+       ==================================================================== -->
+  <div id="modal-add-evidence" class="modal-overlay">
+    <div class="modal-content" style="max-width: 620px;">
+      <div class="modal-header">
+        <div>
+          <h3>➕ Attach Verifiable Technical Evidence</h3>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+            Submit lab proofs, project repos, proctored quizzes, or industry certifications to elevate your competency tier
+          </p>
+        </div>
+        <button class="modal-close-btn" onclick="window.SkillBridge.closeAddEvidenceModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="add-evidence-form" onsubmit="event.preventDefault(); window.SkillBridge.submitEvidenceForm();">
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label for="evidence-skill-select">Select Competency Vector *</label>
+              <select id="evidence-skill-select" class="form-select" required>
+                <option value="cloud">Cloud &amp; Distributed Systems</option>
+                <option value="prog">Programming &amp; Data Structures</option>
+                <option value="db">Relational DBMS &amp; SQL Optimization</option>
+                <option value="web">Web Architecture &amp; RESTful APIs</option>
+                <option value="system">System Design &amp; Scalability</option>
+                <option value="soft">Analytical &amp; Behavioral Problem Solving</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="evidence-type-select">Evidence Trust Level *</label>
+              <select id="evidence-type-select" class="form-select" required>
+                <option value="faculty">Level 3: Faculty / Department Verified (0.90x)</option>
+                <option value="project">Level 4: Industry Capstone / Git Repo (1.00x)</option>
+                <option value="certificate">Level 4: External Recognized Credential (1.00x)</option>
+                <option value="assessment">Level 2: Platform Assessment / Quiz (0.75x)</option>
+                <option value="self">Level 1: Self Claimed Baseline (0.40x)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="evidence-title">Evidence Title / Artifact Name *</label>
+            <input id="evidence-title" type="text" class="form-input" placeholder="e.g. Docker Multi-Stage Microservices Cluster on AWS" required>
+          </div>
+
+          <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label for="evidence-issuer">Verifying Authority / Faculty / Issuer</label>
+              <input id="evidence-issuer" type="text" class="form-input" placeholder="e.g. Dr. S. K. Ramanathan (HOD CSE)">
+            </div>
+            <div class="form-group">
+              <label for="evidence-score">Score / Grade / Evaluation</label>
+              <input id="evidence-score" type="text" class="form-input" placeholder="e.g. 94% or Verified">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="evidence-link">Verifiable URL / GitHub Repo / Credential Link</label>
+            <input id="evidence-link" type="url" class="form-input" placeholder="https://github.com/username/project or verification URL">
+          </div>
+
+          <div class="form-group">
+            <label for="evidence-description">Summary of Technical Implementation</label>
+            <textarea id="evidence-description" class="form-input" rows="2" placeholder="Brief explanation of the technical architecture, libraries used, and benchmarks achieved..."></textarea>
+          </div>
+
+          <div class="callout-info" style="font-size: 0.75rem; margin-top: 10px;">
+            💡 <strong>Verification Workflow:</strong> Level 3 and 4 submissions are instantly routed to the <strong>Faculty Review Queue</strong>. Upon faculty endorsement, your skill tier elevates and increases your match score across all recruiters.
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary-full" style="width: auto; padding: 8px 16px;" onclick="window.SkillBridge.closeAddEvidenceModal()">Cancel</button>
+        <button class="btn-action-sm" style="padding: 9px 24px;" onclick="window.SkillBridge.submitEvidenceForm()">
+          Submit Evidence For Verification 🚀
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       2. VIEW SKILL EVIDENCE INSPECTOR MODAL
+       ==================================================================== -->
+  <div id="modal-view-evidence" class="modal-overlay">
+    <div class="modal-content" style="max-width: 680px;">
+      <div class="modal-header">
+        <div>
+          <h3 id="view-evidence-skill-title">Skill Evidence Inspector</h3>
+          <p id="view-evidence-skill-subtitle" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+            Full audit log of verified assessments, faculty endorsements, and external credentials
+          </p>
+        </div>
+        <button class="modal-close-btn" onclick="window.SkillBridge.closeViewEvidenceModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="view-evidence-summary-box" class="callout-info" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Overall Evidence Confidence</div>
+            <div id="view-evidence-confidence-stat" style="font-size: 1.4rem; font-weight: 800; color: #0284c7;">88% (Tier 3 Verified)</div>
+          </div>
+          <button class="btn-action-sm" onclick="window.SkillBridge.closeViewEvidenceModal(); window.SkillBridge.openAddEvidenceModal();" style="padding: 6px 14px; font-size: 0.75rem;">
+            + Attach More Proof
+          </button>
+        </div>
+
+        <div id="view-evidence-items-list" class="view-evidence-list">
+          <!-- Dynamically populated by script.js -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary-full" style="width: auto; padding: 8px 16px;" onclick="window.SkillBridge.closeViewEvidenceModal()">Close Inspector</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       3. WHY IS MY READINESS SCORE X%? EXPLAINABLE AI MODAL
+       ==================================================================== -->
+  <div id="modal-why-readiness" class="modal-overlay">
+    <div class="modal-content" style="max-width: 760px;">
+      <div class="modal-header">
+        <div>
+          <h3>📊 Explainable Readiness Score: <span id="why-score-header" style="color: #2563eb;">78%</span></h3>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+            Auditable mathematical breakdown across 6 corporate vectors, trust multipliers, and critical deficit penalties
+          </p>
+        </div>
+        <button class="modal-close-btn" onclick="window.SkillBridge.closeWhyReadinessModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Critical Blocker Highlight Box -->
+        <div class="callout-alert" id="why-blocker-box" style="margin-bottom: 18px; border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.08); padding: 12px 16px; border-radius: 8px;">
+          <h4 style="font-size: 0.88rem; color: #ef4444; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <span>⚡ Primary Placement Blocker Identified:</span>
+          </h4>
+          <p id="why-blocker-text" style="font-size: 0.8rem; color: var(--text-main); margin: 0;">
+            <strong>Cloud &amp; Distributed Systems (40%)</strong> is currently self-claimed at Level 1 (0.40x multiplier), dragging your readiness down by <strong>-14.8%</strong>. Clearing the Docker Microservices lab and earning a Level 3 Faculty endorsement will immediately push your readiness to <strong>85%+ (Tier 1 Ready)</strong>!
+          </p>
+        </div>
+
+        <div class="candidates-table-wrapper" style="margin-bottom: 16px;">
+          <table class="candidates-table">
+            <thead>
+              <tr>
+                <th>Vector Competency</th>
+                <th>Benchmark Cutoff</th>
+                <th>Your Level</th>
+                <th>Evidence Trust Multiplier</th>
+                <th>Confidence</th>
+                <th style="text-align: right;">Weighted Contribution</th>
+              </tr>
+            </thead>
+            <tbody id="why-readiness-tbody">
+              <!-- Dynamically populated by script.js -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Formula Explanation -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 8px; padding: 12px 16px; font-size: 0.78rem; color: var(--text-muted);">
+          <strong style="color: var(--text-main);">WVSE-v2 Formula:</strong>
+          <code style="display: block; margin-top: 4px; padding: 6px 10px; background: rgba(0,0,0,0.1); border-radius: 4px; font-family: monospace; color: #0284c7;">
+            Readiness Score = Σ [ Proficiency(Vector_i) × TrustMultiplier(Vector_i) × Weight(Vector_i) ]
+          </code>
+          <p style="margin-top: 6px; font-size: 0.74rem;">
+            Notice how self-claimed competencies are heavily dampened (0.40x) until backed by verified proctored evaluations (0.75x), faculty endorsements (0.90x), or industry credentials (1.00x).
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary-full" style="width: auto; padding: 8px 16px;" onclick="window.SkillBridge.closeWhyReadinessModal()">Close Audit</button>
+        <button class="btn-action-sm" style="padding: 9px 20px;" onclick="window.SkillBridge.closeWhyReadinessModal(); window.SkillBridge.switchSystemTab('development');">
+          Bridge Critical Gaps Now ↗
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       4. DIGITAL SKILL PASSPORT MODAL
+       ==================================================================== -->
+  <div id="modal-skill-passport" class="modal-overlay">
+    <div class="modal-content" style="max-width: 680px; background: transparent; box-shadow: none; border: none; padding: 0;">
+      <div class="passport-card-container" id="passport-hologram-card">
+        <div class="passport-card-topbar">
+          <div class="passport-brand-pill">
+            <span>🛡️</span> SKILLBRIDGE VERIFIED PROTOCOL
+          </div>
+          <button class="modal-close-btn" style="color: #fff;" onclick="window.SkillBridge.closeSkillPassportModal()">&times;</button>
+        </div>
+
+        <div class="passport-header">
+          <div class="passport-avatar-wrap">
+            <div class="passport-avatar" id="passport-avatar">👨‍🎓</div>
+            <div class="passport-verified-tick">✓</div>
+          </div>
+          <div class="passport-student-info">
+            <h2 id="passport-student-name">Hariprasad PS</h2>
+            <div id="passport-student-roll" class="passport-meta-line">Roll No: 26CS263 • Dept of Computer Science &amp; Engineering</div>
+            <div id="passport-student-inst" class="passport-meta-line">National Institute of Technology • CGPA: 8.85</div>
+          </div>
+          <div class="passport-overall-badge">
+            <span class="passport-badge-num" id="passport-readiness-num">78%</span>
+            <span class="passport-badge-lbl">Readiness</span>
+          </div>
+        </div>
+
+        <div class="passport-body">
+          <div class="passport-skills-section">
+            <h4 class="passport-section-title">Verified Competencies &amp; Trust Tiers</h4>
+            <div class="passport-skills-grid" id="passport-skills-grid">
+              <!-- Dynamically populated by script.js -->
+            </div>
+          </div>
+
+          <div class="passport-security-row">
+            <div class="passport-hash-block">
+              <div class="hash-label">CRYPTOGRAPHIC INTEGRITY SEAL:</div>
+              <div id="passport-hash" class="hash-code">0x9F82A478B0C1E5...SECURE-SHA256</div>
+              <div class="hash-sub">Issued under Academia-Industry BoS Verification Standard</div>
+            </div>
+            <div class="passport-qr-seal">
+              <div class="qr-mock">
+                <span>VERIFIED<br>CREDENTIAL</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="passport-footer">
+          <button class="passport-action-btn" onclick="window.SkillBridge.copyPassportLink()">
+            <span>🔗</span> Copy Shareable Verification Link
+          </button>
+          <button class="passport-action-btn primary" onclick="window.print()">
+            <span>🖨️</span> Print / Export Passport
+          </button>
+        </div>
       </div>
     </div>
   </div>

@@ -10,9 +10,10 @@
  */
 
 const TRUST_TIERS = {
-  tier_3_verified: { multiplier: 1.00, label: 'Tier 3 (Verified Assessment / Certificate)', badge: 'Verified' },
-  tier_2_assessed: { multiplier: 0.75, label: 'Tier 2 (Faculty/Lab Assessed)', badge: 'Assessed' },
-  tier_1_self_claimed: { multiplier: 0.40, label: 'Tier 1 (Self Claimed)', badge: 'Self-Claimed' }
+  tier_4_industry: { multiplier: 1.00, level: 4, label: 'Level 4 (Industry / External Credential)', badge: 'Industry Verified', confidence: 95 },
+  tier_3_verified: { multiplier: 0.90, level: 3, label: 'Level 3 (Faculty / Institution Verified)', badge: 'Faculty Verified', confidence: 85 },
+  tier_2_assessed: { multiplier: 0.75, level: 2, label: 'Level 2 (Assessment Verified)', badge: 'Assessment Verified', confidence: 70 },
+  tier_1_self_claimed: { multiplier: 0.40, level: 1, label: 'Level 1 (Self Declared)', badge: 'Self Declared', confidence: 30 }
 };
 
 /**
@@ -116,6 +117,19 @@ function calculateWVSEMatch(studentSkills = [], requirements = []) {
   const normalizedPenalty = totalWeight > 0 ? (coreDeficitPenalty / totalWeight) * 100 : 0;
   const finalMatchScore = Math.max(0, Math.min(100, Math.round(baseScore - normalizedPenalty)));
 
+  // Calculate overall evidence confidence score
+  let totalConfidence = 0;
+  let confCount = 0;
+  requirements.forEach(req => {
+    const code = (req.skill_code || req.code || req.name || '').toLowerCase().trim();
+    const studentSkill = studentSkillMap.get(code);
+    const tier = studentSkill ? (studentSkill.evidence_tier || 'tier_1_self_claimed') : 'tier_1_self_claimed';
+    const conf = (TRUST_TIERS[tier] || TRUST_TIERS.tier_1_self_claimed).confidence;
+    totalConfidence += conf;
+    confCount++;
+  });
+  const evidenceConfidence = confCount > 0 ? Math.round(totalConfidence / confCount) : 40;
+
   // Determine readiness status
   let readinessTier = 'Needs Foundation';
   if (finalMatchScore >= 85) readinessTier = 'Direct Hire Ready (Tier A)';
@@ -123,15 +137,21 @@ function calculateWVSEMatch(studentSkills = [], requirements = []) {
   else if (finalMatchScore >= 50) readinessTier = 'Bridging Fast-Track (Tier C)';
 
   // Generate Explainable AI Reasoning Notes
+  const tier4Count = breakdown.filter(b => b.evidence_tier === 'tier_4_industry').length;
+  const tier3Count = breakdown.filter(b => b.evidence_tier === 'tier_3_verified').length;
+  const tier2Count = breakdown.filter(b => b.evidence_tier === 'tier_2_assessed').length;
+  const tier1Count = breakdown.filter(b => b.evidence_tier === 'tier_1_self_claimed').length;
+
   const explainableReasons = [
     `Base proficiency alignment: ${Math.round(baseScore)}% across ${requirements.length} target competencies.`,
-    `Evidence Trust Multiplier applied: ${breakdown.filter(b => b.evidence_tier === 'tier_3_verified').length} skills verified via Proctor/Cert (1.00x), ${breakdown.filter(b => b.evidence_tier === 'tier_2_assessed').length} assessed (0.75x).`,
+    `Evidence Trust Multipliers: ${tier4Count} Industry Verified (1.00x), ${tier3Count} Faculty Verified (0.90x), ${tier2Count} Assessment Verified (0.75x), ${tier1Count} Self-Declared (0.40x). Overall Confidence: ${evidenceConfidence}%.`,
     normalizedPenalty > 0 ? `Core deficit penalty (-${Math.round(normalizedPenalty)}%) applied due to unmet mandatory requirements.` : 'All mandatory cutoffs fulfilled with zero penalty.',
     deficits.length > 0 ? `Top priority gap to bridge: ${deficits[0].skill} (Deficit of ${deficits[0].deficit_points}%).` : 'Comprehensive syllabus alignment achieved.'
   ];
 
   return {
     matchScore: finalMatchScore,
+    evidenceConfidence,
     baseScore: Math.round(baseScore),
     penaltyScore: Math.round(normalizedPenalty),
     readinessTier,
