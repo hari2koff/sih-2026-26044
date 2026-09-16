@@ -9,6 +9,753 @@
   'use strict';
 
   // ---------------------------------------------------------------------------
+  // 0. BACKEND API CLIENT (Node.js / Express / PostgreSQL on port 5000)
+  // ---------------------------------------------------------------------------
+  const API_BASE = (typeof window !== 'undefined' && window.SKILLBRIDGE_API_URL) || 'http://localhost:5000';
+
+  const ApiClient = {
+    baseUrl: API_BASE,
+    isConnected: false,
+
+    async request(endpoint, options = {}) {
+      try {
+        const url = `${this.baseUrl}${endpoint}`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+            'x-demo-role': 'student',
+            'x-user-id': 'u-student-1',
+            ...(options.headers || {})
+          }
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        return await response.json();
+      } catch (err) {
+        // Fall back gracefully to offline state
+        return null;
+      }
+    },
+
+    async checkHealth() {
+      const res = await this.request('/api/health');
+      if (res && res.status === 'healthy') {
+        this.isConnected = true;
+        return res;
+      }
+      this.isConnected = false;
+      return null;
+    },
+
+    async getStudentProfile() {
+      return this.request('/api/v1/students/profile');
+    },
+
+    async getCohort() {
+      return this.request('/api/v1/students/cohort');
+    },
+
+    async getInternships() {
+      return this.request('/api/v1/internships');
+    },
+
+    async getMatchingBreakdown(studentId, internshipId) {
+      return this.request(`/api/v1/matching/explain?studentId=${studentId}&internshipId=${internshipId}`);
+    },
+
+    async submitAssessment(skillCode, answers) {
+      return this.request(`/api/v1/skills/${skillCode}/assessment`, {
+        method: 'POST',
+        body: JSON.stringify({ answers })
+      });
+    },
+
+    async verifyCertificate(certData) {
+      return this.request('/api/v1/students/verify-certificate', {
+        method: 'POST',
+        body: JSON.stringify(certData)
+      });
+    },
+
+    async recordTelemetry(telemetryData) {
+      return this.request('/api/v1/companies/telemetry', {
+        method: 'POST',
+        body: JSON.stringify(telemetryData)
+      });
+    },
+
+    async submitProposal(proposalData) {
+      return this.request('/api/v1/institutions/syllabus-proposals', {
+        method: 'POST',
+        body: JSON.stringify(proposalData)
+      });
+    },
+
+    async enrollEvent(eventId) {
+      return this.request(`/api/v1/events/${eventId}/enroll`, {
+        method: 'POST'
+      });
+    }
+  };
+
+  function updateBackendStatusUI(isConnected, detail = '') {
+    const badge = document.getElementById('backend-status-badge');
+    const text = document.getElementById('backend-status-text');
+    if (!badge || !text) return;
+
+    if (isConnected) {
+      badge.className = 'backend-badge online';
+      text.textContent = 'Backend: Live (Port 5000)';
+      badge.title = `SkillBridge Backend Connected • ${detail || 'WVSE-v2 Active'}`;
+    } else {
+      badge.className = 'backend-badge offline';
+      text.textContent = 'Backend: Standalone Mode';
+      badge.title = 'Backend offline or booting. Operating on high-performance in-browser engine.';
+    }
+  }
+
+  async function syncWithBackend() {
+    const health = await ApiClient.checkHealth();
+    if (health) {
+      updateBackendStatusUI(true, health.database_mode);
+      showToast('🟢 Connected to SkillBridge Backend API (Port 5000)! Live WVSE-v2 engine active.', 'success');
+
+      // Sync student profile / live-tracking from backend
+      try {
+        const liveRes = await ApiClient.request('/api/v1/students/live-tracking');
+        if (liveRes && liveRes.success && liveRes.data && liveRes.data.student) {
+          const s = liveRes.data.student;
+          const studentObj = {
+            isRegistered: true,
+            id: s.id,
+            name: s.name,
+            rollNo: s.roll_no,
+            institution: s.institution_name || 'National Institute of Technology',
+            department: s.department || 'Computer Science & Engineering',
+            semester: s.semester || '7th Semester',
+            cgpa: s.cgpa || 8.5,
+            overallReadiness: liveRes.data.overall_readiness || s.overall_readiness || 75,
+            verifiedBadgesCount: s.verified_badges_count || 2,
+            criticalGapsCount: liveRes.data.critical_gaps ? liveRes.data.critical_gaps.length : (s.critical_gaps_count || 1),
+            radarScores: {
+              prog: liveRes.data.radar?.programming || s.radar_prog || 75,
+              web: liveRes.data.radar?.web_development || s.radar_web || 75,
+              db: liveRes.data.radar?.databases || s.radar_db || 70,
+              cloud: liveRes.data.radar?.cloud_devops || s.radar_cloud || 40,
+              system: liveRes.data.radar?.system_architecture || s.radar_system || 50,
+              soft: liveRes.data.radar?.soft_skills || s.radar_soft || 80
+            },
+            targetCompany: s.target_company || 'TechNova Solutions (Full Stack)'
+          };
+
+          const creds = {
+            username: s.roll_no,
+            password: '••••••••',
+            student_name: s.name,
+            roll_no: s.roll_no,
+            issue_date: s.created_at
+          };
+
+          applyLiveStudentData(studentObj, creds, true);
+        } else {
+          // Backend has 0 students registered. If no local session, show empty slate!
+          const localAuth = localStorage.getItem('skillbridge_auth_student');
+          if (!localAuth) {
+            updateLiveStudentSessionUI();
+            updateExecutiveMetrics();
+          }
+        }
+      } catch (e) {
+        console.warn('Profile sync error:', e);
+      }
+
+      // Sync proposals from backend
+      try {
+        const propRes = await ApiClient.request('/api/v1/institutions/syllabus-proposals');
+        if (propRes && propRes.success && propRes.data && propRes.data.length > 0) {
+          propRes.data.forEach(p => {
+            if (!state.syllabusProposals.some(sp => sp.id === p.id)) {
+              state.syllabusProposals.unshift({
+                id: p.id,
+                title: p.title,
+                proposedBy: p.proposer_name,
+                targetDean: 'Dr. S. K. Mukherjee (Dean of Academics)',
+                date: new Date(p.created_at || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+                deficitStat: p.deficit_justification,
+                rationale: `Proposed for ${p.department} curriculum revision.`,
+                status: p.status === 'approved' ? 'Approved by BoS' : 'Under Review by Dean Dr. S. K. Mukherjee',
+                statusClass: p.status === 'approved' ? 'approved' : 'review'
+              });
+            }
+          });
+          renderSyllabusProposals();
+        }
+      } catch (e) {
+        console.warn('Proposals sync error:', e);
+      }
+    } else {
+      updateBackendStatusUI(false);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // 1B. LIVE STUDENT INTAKE, CREDENTIAL ISSUANCE & SESSION MANAGEMENT
+  // ---------------------------------------------------------------------------
+
+  function recalculateCompanyMatches(student) {
+    if (!student || !student.radarScores) return;
+    const radar = student.radarScores;
+
+    state.companies.forEach(c => {
+      const b = c.benchmark;
+      const progRatio = Math.min(1.05, radar.prog / (b.prog || 80));
+      const webRatio = Math.min(1.05, radar.web / (b.web || 80));
+      const dbRatio = Math.min(1.05, radar.db / (b.db || 80));
+      const cloudRatio = Math.min(1.05, radar.cloud / (b.cloud || 75));
+      const systemRatio = Math.min(1.05, radar.system / (b.system || 70));
+      const softRatio = Math.min(1.05, radar.soft / (b.soft || 80));
+
+      const weightedScore = Math.round(
+        (progRatio * 0.22 + webRatio * 0.22 + dbRatio * 0.18 + cloudRatio * 0.16 + systemRatio * 0.12 + softRatio * 0.10) * 100
+      );
+
+      c.matchScore = Math.min(99, Math.max(25, weightedScore));
+      c.tier = c.matchScore >= 85 ? 'high' : (c.matchScore >= 70 ? 'moderate' : 'target');
+
+      if (c.matchScore >= 85) {
+        c.explainableReason = `High vector alignment on ${c.category} competencies (+${c.matchScore}%). Qualified for direct corporate interview fast-track.`;
+      } else if (c.matchScore >= 70) {
+        c.explainableReason = `Strong foundational fit. Deficit in ${radar.cloud < 60 ? 'Cloud/DevOps' : 'System Design'} (-${100 - c.matchScore}%). Complete recommended gap bridging to unlock Tier 1.`;
+      } else {
+        c.explainableReason = `Emerging candidate profile. Significant gap against ${c.name} benchmark in ${radar.cloud < 60 ? 'DevOps & Containers' : 'Core Architecture'}. Roadmap bridging recommended.`;
+      }
+
+      if (c.requiredSkillGaps) {
+        c.requiredSkillGaps.forEach(g => {
+          let studentVal = 50;
+          if (g.category === 'Programming' || g.category === 'DSA') studentVal = radar.prog;
+          else if (g.category === 'Web') studentVal = radar.web;
+          else if (g.category === 'Databases') studentVal = radar.db;
+          else if (g.category === 'DevOps' || g.category === 'Cloud') studentVal = radar.cloud;
+          else if (g.category === 'Architecture') studentVal = radar.system;
+          else studentVal = radar.soft;
+
+          g.cur = studentVal;
+          if (studentVal >= g.req) {
+            g.severity = 'verified';
+            g.trustTier = 'verified';
+          } else if (g.req - studentVal > 25) {
+            g.severity = 'critical';
+            g.trustTier = 'assessed';
+          } else {
+            g.severity = 'recommended';
+            g.trustTier = 'assessed';
+          }
+        });
+      }
+    });
+  }
+
+  function updateLiveStudentSessionUI() {
+    const s = state.student;
+    const isRegistered = s && s.isRegistered;
+
+    const avatarEl = document.getElementById('current-student-avatar');
+    const nameEl = document.getElementById('current-student-name');
+    const badgeEl = document.getElementById('current-student-status-badge');
+    const metaEl = document.getElementById('current-student-meta');
+
+    const navAvatar = document.getElementById('nav-avatar');
+    const navName = document.getElementById('nav-user-name');
+    const navTag = document.getElementById('nav-user-tag');
+
+    if (isRegistered) {
+      const initials = s.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'ST';
+      if (avatarEl) {
+        avatarEl.textContent = initials;
+        avatarEl.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+      }
+      if (nameEl) nameEl.textContent = s.name;
+      if (badgeEl) {
+        badgeEl.textContent = 'Live Session Active';
+        badgeEl.className = 'student-session-pill verified';
+      }
+      if (metaEl) {
+        metaEl.textContent = `${s.rollNo || s.roll_no} • ${s.department || 'B.Tech CSE'} • ${s.institution || 'NIT'} • CGPA ${s.cgpa || '8.5'}`;
+      }
+
+      if (navAvatar) {
+        navAvatar.textContent = initials;
+        navAvatar.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+      }
+      if (navName) navName.textContent = s.name;
+      if (navTag) navTag.textContent = `${s.rollNo || s.roll_no} • Online`;
+
+      const certRecipient1 = document.getElementById('cert-card-recipient');
+      if (certRecipient1) certRecipient1.textContent = s.name;
+      const certRecipient2 = document.getElementById('cert-recipient-name');
+      if (certRecipient2) certRecipient2.textContent = s.name;
+      const auditStudent = document.getElementById('faculty-audit-student-name');
+      if (auditStudent) auditStudent.textContent = s.name;
+      const auditUsn = document.getElementById('faculty-audit-student-usn');
+      if (auditUsn) auditUsn.textContent = `Roll: ${s.rollNo || s.roll_no}`;
+      const feedCandidate = document.getElementById('feedback-candidate-name');
+      if (feedCandidate) feedCandidate.value = `${s.name} (${s.rollNo || s.roll_no})`;
+    } else {
+      if (avatarEl) {
+        avatarEl.textContent = '🎓';
+        avatarEl.style.background = 'var(--bg-card-hover)';
+      }
+      if (nameEl) nameEl.textContent = 'No Student Registered';
+      if (badgeEl) {
+        badgeEl.textContent = 'Awaiting Live Intake';
+        badgeEl.className = 'student-session-pill unverified';
+      }
+      if (metaEl) {
+        metaEl.textContent = 'Register your live details or sign in with issued credentials to launch real-time WVSE-v2 tracking';
+      }
+
+      if (navAvatar) {
+        navAvatar.textContent = '🎓';
+        navAvatar.style.background = '';
+      }
+      if (navName) navName.textContent = 'Guest Student';
+      if (navTag) navTag.textContent = 'Click to Register / Login';
+    }
+  }
+
+  function applyLiveStudentData(student, creds, saveLocal = true) {
+    state.student = student;
+    if (creds) state.activeStudentCredentials = creds;
+
+    if (saveLocal) {
+      localStorage.setItem('skillbridge_auth_student', JSON.stringify({ student, credentials: creds }));
+    }
+
+    recalculateCompanyMatches(student);
+
+    state.facultyStudents = [
+      {
+        id: student.id || 'f-s1',
+        name: student.name,
+        roll: student.rollNo,
+        branch: `${student.department || 'B.Tech CSE'} • ${student.semester || '7th Sem'}`,
+        cgpa: student.cgpa || 8.5,
+        readiness: student.overallReadiness,
+        trend: '+5% this month',
+        status: student.overallReadiness >= 85 ? 'ready' : (student.overallReadiness >= 70 ? 'bridging' : 'support'),
+        statusLabel: student.overallReadiness >= 85 ? 'Placement Ready (>85%)' : (student.overallReadiness >= 70 ? 'In Active Bridging' : 'Academic Support Needed'),
+        verifiedBadges: ['Live Intake Verified', 'WVSE Algorithmic Calibrated'],
+        buildingNow: student.targetCompany || 'Full Stack & Cloud Architecture',
+        radar: student.radarScores,
+        targetCompany: student.targetCompany || 'TechNova Solutions'
+      }
+    ];
+
+    state.recruiterCandidates = [
+      {
+        id: 'c1',
+        name: `${student.name} (Live Candidate)`,
+        roll: student.rollNo,
+        gpa: `${student.cgpa || 8.5} CGPA`,
+        readiness: student.overallReadiness,
+        tier: student.overallReadiness >= 85 ? 'Tier 1: Interview Ready' : (student.overallReadiness >= 70 ? 'Tier 2: Pre-Screened' : 'Tier 3: Emerging Talent'),
+        tierClass: student.overallReadiness >= 85 ? 'tier-high' : (student.overallReadiness >= 70 ? 'tier-moderate' : 'tier-target'),
+        radarMatch: student.overallReadiness,
+        badges: ['Intake Verified', 'Algorithmic Match Active'],
+        keyStrengths: `Programming (${student.radarScores.prog}%), Web (${student.radarScores.web}%), DB (${student.radarScores.db}%)`,
+        gapAlert: student.radarScores.cloud < 60 ? 'Cloud & DevOps Deficit' : 'Continuous Integration',
+        status: 'Profile Active • Open for Matching'
+      }
+    ];
+
+    updateLiveStudentSessionUI();
+    updateExecutiveMetrics();
+    renderCompanyMatchingList();
+    renderRadarChart(state.selectedCompanyId);
+    renderSkillGapSection();
+    renderRoadmaps();
+    renderRecruiterPortal();
+    renderFacultyStudents();
+  }
+
+  function openRegisterModal() {
+    const modal = document.getElementById('student-register-modal');
+    if (modal) modal.classList.add('active');
+  }
+
+  function closeRegisterModal() {
+    const modal = document.getElementById('student-register-modal');
+    if (modal) modal.classList.remove('active');
+  }
+
+  function openLoginModal() {
+    const modal = document.getElementById('student-login-modal');
+    if (modal) modal.classList.add('active');
+  }
+
+  function closeLoginModal() {
+    const modal = document.getElementById('student-login-modal');
+    if (modal) modal.classList.remove('active');
+  }
+
+  function openCredentialsModal(creds) {
+    const modal = document.getElementById('student-credentials-modal');
+    if (!modal) return;
+
+    const nameEl = document.getElementById('cred-display-name') || document.getElementById('cred-student-name');
+    const userEl = document.getElementById('cred-display-username') || document.getElementById('cred-username');
+    const passEl = document.getElementById('cred-display-password') || document.getElementById('cred-password');
+    const metaEl = document.getElementById('cred-display-meta');
+    const dateEl = document.getElementById('cred-issue-date');
+
+    const sName = creds.student_name || creds.name || state.student?.name || 'Student';
+    const sUser = creds.username || creds.roll_no || state.student?.rollNo || 'USERNAME';
+    const sPass = creds.password || '••••••••';
+
+    if (nameEl) nameEl.textContent = sName;
+    if (userEl) userEl.textContent = sUser;
+    if (passEl) passEl.textContent = sPass;
+    if (metaEl) metaEl.textContent = `${sUser} • ${state.student?.department || 'Computer Science & Engineering'}`;
+    if (dateEl) {
+      const d = creds.issue_date ? new Date(creds.issue_date) : new Date();
+      dateEl.textContent = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    modal.classList.add('active');
+  }
+
+  function closeCredentialsModal() {
+    const modal = document.getElementById('student-credentials-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+  }
+
+  function copyCredentials() {
+    const user = document.getElementById('cred-display-username')?.textContent || document.getElementById('cred-username')?.textContent || '';
+    const pass = document.getElementById('cred-display-password')?.textContent || document.getElementById('cred-password')?.textContent || '';
+    const name = document.getElementById('cred-display-name')?.textContent || document.getElementById('cred-student-name')?.textContent || '';
+
+    const textToCopy = `SkillBridge Student Access Card\n--------------------------------\nStudent: ${name}\nUsername: ${user}\nPassword: ${pass}\nPortal: http://localhost:5000\n--------------------------------`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const copyBtn = document.querySelector('.btn-copy-creds') || document.getElementById('btn-copy-creds');
+        const copyText = document.getElementById('copy-creds-text');
+        if (copyText) copyText.textContent = 'Copied to Clipboard! ✓';
+        if (copyBtn && !copyText) copyBtn.textContent = '✓ Copied to Clipboard!';
+        setTimeout(() => {
+          if (copyText) copyText.textContent = 'Copy Credentials to Clipboard';
+          if (copyBtn && !copyText) copyBtn.textContent = '📋 Copy Access Credentials';
+        }, 2500);
+        showToast('📋 Credentials copied to clipboard!', 'success');
+      }).catch(() => {
+        showToast(`Username: ${user} | Password: ${pass}`, 'info');
+      });
+    } else {
+      showToast(`Username: ${user} | Password: ${pass}`, 'info');
+    }
+  }
+
+  function launchLiveTrackingFromModal() {
+    closeCredentialsModal();
+    window.SkillBridge.switchPerspective('student');
+    const studentSec = document.getElementById('portal-student');
+    if (studentSec) {
+      studentSec.scrollIntoView({ behavior: 'smooth' });
+    }
+    showToast(`🎯 Live tracking dashboard activated for ${state.student.name}!`, 'success');
+  }
+
+  function handleUserChipClick() {
+    if (state.student && state.student.isRegistered && state.activeStudentCredentials) {
+      openCredentialsModal(state.activeStudentCredentials);
+    } else {
+      openRegisterModal();
+    }
+  }
+
+  async function submitStudentRegistration() {
+    const nameInput = document.getElementById('reg-student-name');
+    const rollInput = document.getElementById('reg-student-roll');
+    const collegeInput = document.getElementById('reg-student-institution') || document.getElementById('reg-student-college');
+    const deptInput = document.getElementById('reg-student-department') || document.getElementById('reg-student-dept');
+    const semInput = document.getElementById('reg-student-semester') || document.getElementById('reg-student-sem');
+    const cgpaInput = document.getElementById('reg-student-cgpa');
+    const roleInput = document.getElementById('reg-target-company') || document.getElementById('reg-target-role');
+    const customPassInput = document.getElementById('reg-student-password') || document.getElementById('reg-custom-password');
+
+    const name = nameInput ? nameInput.value.trim() : '';
+    const rollNo = rollInput ? rollInput.value.trim().toUpperCase() : '';
+    if (!name || !rollNo) {
+      showToast('⚠️ Please provide Student Full Name and Roll Number / ID.', 'error');
+      if (!name && nameInput) nameInput.focus();
+      else if (rollInput) rollInput.focus();
+      return;
+    }
+
+    const institution = collegeInput ? collegeInput.value.trim() : 'National Institute of Technology';
+    const department = deptInput ? deptInput.value.trim() : 'Computer Science & Engineering';
+    const semester = semInput ? semInput.value : '7th Semester';
+    const year = semester.includes('7') || semester.includes('8') ? '4th Year' : (semester.includes('5') || semester.includes('6') ? '3rd Year' : '2nd Year');
+    const cgpa = cgpaInput ? parseFloat(cgpaInput.value) || 8.5 : 8.5;
+    const targetRole = roleInput ? roleInput.value : 'TechNova Solutions (Full Stack)';
+    const customPassword = customPassInput ? customPassInput.value.trim() : '';
+
+    const prog = parseInt(document.getElementById('reg-skill-prog')?.value, 10) || 75;
+    const web = parseInt(document.getElementById('reg-skill-web')?.value, 10) || 75;
+    const db = parseInt(document.getElementById('reg-skill-db')?.value, 10) || 70;
+    const cloud = parseInt(document.getElementById('reg-skill-cloud')?.value, 10) || 40;
+    const system = parseInt(document.getElementById('reg-skill-system')?.value, 10) || 50;
+    const soft = parseInt(document.getElementById('reg-skill-soft')?.value, 10) || 80;
+
+    const payload = {
+      name,
+      roll_no: rollNo,
+      institution_name: institution,
+      department,
+      semester: `${semester} (${year})`,
+      cgpa,
+      target_company: targetRole,
+      password: customPassword,
+      radar_prog: prog,
+      radar_web: web,
+      radar_db: db,
+      radar_cloud: cloud,
+      radar_system: system,
+      radar_soft: soft
+    };
+
+    let registeredData = null;
+    let creds = null;
+
+    try {
+      const response = await ApiClient.request('/api/v1/students/register', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      if (response && response.success) {
+        registeredData = (response.data && response.data.student) || response.student;
+        creds = (response.data && response.data.credentials) || response.credentials;
+        const authToken = (response.data && response.data.token) || response.token;
+        if (authToken) {
+          localStorage.setItem('skillbridge_auth_token', authToken);
+        }
+      }
+    } catch (err) {
+      console.warn('Backend offline or error, generating local credentials:', err);
+    }
+
+    if (!registeredData) {
+      const generatedPassword = customPassword && customPassword.length >= 4
+        ? customPassword
+        : `SKILL-${Math.floor(1000 + Math.random() * 9000)}-${Math.random().toString(36).substring(2, 4).toUpperCase()}`;
+
+      const overallReadiness = Math.round((prog + web + db + cloud + system + soft) / 6);
+      const criticalGapsCount = (cloud < 60 ? 1 : 0) + (system < 60 ? 1 : 0);
+
+      registeredData = {
+        id: `s-${Date.now()}`,
+        name,
+        roll_no: rollNo,
+        institution_name: institution,
+        department,
+        semester: `${semester} (${year})`,
+        cgpa,
+        overall_readiness: overallReadiness,
+        verified_badges_count: 2,
+        critical_gaps_count: criticalGapsCount,
+        radar_prog: prog,
+        radar_web: web,
+        radar_db: db,
+        radar_cloud: cloud,
+        radar_system: system,
+        radar_soft: soft,
+        target_company: targetRole
+      };
+
+      creds = {
+        username: rollNo,
+        password: generatedPassword,
+        student_name: name,
+        roll_no: rollNo,
+        issue_date: new Date().toISOString()
+      };
+    }
+
+    const student = {
+      isRegistered: true,
+      id: registeredData.id,
+      name: registeredData.name,
+      rollNo: registeredData.roll_no,
+      institution: registeredData.institution_name || institution,
+      department: registeredData.department,
+      semester: registeredData.semester,
+      cgpa: registeredData.cgpa,
+      overallReadiness: registeredData.overall_readiness,
+      verifiedBadgesCount: registeredData.verified_badges_count || 2,
+      criticalGapsCount: registeredData.critical_gaps_count !== undefined ? registeredData.critical_gaps_count : 1,
+      radarScores: {
+        prog: registeredData.radar_prog || prog,
+        web: registeredData.radar_web || web,
+        db: registeredData.radar_db || db,
+        cloud: registeredData.radar_cloud || cloud,
+        system: registeredData.radar_system || system,
+        soft: registeredData.radar_soft || soft
+      },
+      targetCompany: targetRole
+    };
+
+    applyLiveStudentData(student, creds, true);
+    closeRegisterModal();
+    openCredentialsModal(creds);
+    showToast(`🎉 Registration complete for ${name}! Credentials issued.`, 'success');
+  }
+
+  async function submitStudentLogin() {
+    const userInput = document.getElementById('login-username');
+    const passInput = document.getElementById('login-password');
+    const username = userInput ? userInput.value.trim() : '';
+    const password = passInput ? passInput.value.trim() : '';
+
+    if (!username || !password) {
+      showToast('⚠️ Please enter both Username / Roll No and Password.', 'error');
+      return;
+    }
+
+    try {
+      const response = await ApiClient.request('/api/v1/students/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+      });
+
+      if (response && response.success) {
+        const studentRec = (response.data && response.data.student) || response.student;
+        if (studentRec) {
+          const student = {
+            isRegistered: true,
+            id: studentRec.id,
+            name: studentRec.name,
+            rollNo: studentRec.roll_no,
+            institution: studentRec.institution_name,
+            department: studentRec.department,
+            semester: studentRec.semester,
+            cgpa: studentRec.cgpa,
+            overallReadiness: studentRec.overall_readiness,
+            verifiedBadgesCount: studentRec.verified_badges_count || 2,
+            criticalGapsCount: studentRec.critical_gaps_count !== undefined ? studentRec.critical_gaps_count : 1,
+            radarScores: {
+              prog: studentRec.radar_prog || 75,
+              web: studentRec.radar_web || 75,
+              db: studentRec.radar_db || 70,
+              cloud: studentRec.radar_cloud || 40,
+              system: studentRec.radar_system || 50,
+              soft: studentRec.radar_soft || 80
+            },
+            targetCompany: studentRec.target_company
+          };
+
+          const usernameVal = (response.data && response.data.credentials && response.data.credentials.username) || 
+                              (response.credentials && response.credentials.username) || 
+                              (response.data && response.data.user && response.data.user.username) || 
+                              username;
+
+          const creds = {
+            username: usernameVal,
+            password: password,
+            student_name: student.name,
+            roll_no: student.rollNo,
+            issue_date: new Date().toISOString()
+          };
+
+          const authToken = (response.data && response.data.token) || response.token;
+          if (authToken) {
+            localStorage.setItem('skillbridge_auth_token', authToken);
+          }
+
+          applyLiveStudentData(student, creds, true);
+          closeLoginModal();
+          showToast(`🔓 Welcome back, ${student.name}! Live tracking loaded.`, 'success');
+          return;
+        }
+      }
+    } catch (err) {
+      const saved = localStorage.getItem('skillbridge_auth_student');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.credentials && parsed.credentials.username.toUpperCase() === username.toUpperCase() && parsed.credentials.password === password) {
+            applyLiveStudentData(parsed.student, parsed.credentials, false);
+            closeLoginModal();
+            showToast(`🔓 Welcome back, ${parsed.student.name}! (Offline Session Restored)`, 'success');
+            return;
+          }
+        } catch (e) {}
+      }
+      showToast('❌ Authentication failed. Invalid username or password.', 'error');
+    }
+  }
+
+  async function resetStudentDataPrompt() {
+    const confirmWipe = confirm(
+      "Are you sure you want to clear all student records?\n\nThis will wipe any currently registered live student and reset the system back to a clean slate, allowing you to demonstrate a fresh manual student data intake."
+    );
+    if (!confirmWipe) return;
+
+    try {
+      await ApiClient.request('/api/v1/students/reset-data', { method: 'POST' });
+    } catch (e) {
+      console.warn('Backend reset error or offline:', e);
+    }
+
+    localStorage.removeItem('skillbridge_auth_student');
+    localStorage.removeItem('skillbridge_auth_token');
+
+    state.student = {
+      isRegistered: false,
+      name: "No Student Registered",
+      rollNo: "Awaiting Live Intake",
+      institution: "National Institute of Technology",
+      department: "Computer Science & Engineering",
+      semester: "Semester --",
+      overallReadiness: 0,
+      verifiedBadgesCount: 0,
+      criticalGapsCount: 0,
+      testsPassed: 0,
+      radarScores: { prog: 0, web: 0, db: 0, cloud: 0, system: 0, soft: 0 },
+      skills: []
+    };
+    state.activeStudentCredentials = null;
+    state.facultyStudents = [];
+    state.recruiterCandidates = [];
+
+    state.companies.forEach(c => {
+      c.matchScore = 0;
+      c.tier = 'target';
+    });
+
+    updateLiveStudentSessionUI();
+    updateExecutiveMetrics();
+    renderCompanyMatchingList();
+    renderRadarChart(state.selectedCompanyId);
+    renderSkillGapSection();
+    renderRoadmaps();
+    renderRecruiterPortal();
+    renderFacultyStudents();
+
+    showToast('🧹 All student data has been wiped. System is ready for live intake demonstration!', 'success');
+  }
+
+  // ---------------------------------------------------------------------------
   // 1. STATE MANAGEMENT & COMPREHENSIVE DATASETS
   // ---------------------------------------------------------------------------
 
@@ -26,42 +773,29 @@
     facultyStudentFilter: 'all',   // 'all' | 'ready' | 'bridging' | 'support'
     facultyStudentSearch: '',
     
-    // Dynamic student profile state
+    // Dynamic student profile state (Initial clean slate for live intake demonstration)
     student: {
-      name: "Hariprasad PS",
-      rollNo: "2022CSE1042",
+      isRegistered: false,
+      name: "No Student Registered",
+      rollNo: "Awaiting Live Intake",
       institution: "National Institute of Technology",
       department: "Computer Science & Engineering",
-      semester: "7th Semester (Batch of 2026)",
-      overallReadiness: 78,
-      verifiedBadgesCount: 4,
-      criticalGapsCount: 2,
-      testsPassed: 3,
-      
+      semester: "Semester --",
+      overallReadiness: 0,
+      verifiedBadgesCount: 0,
+      criticalGapsCount: 0,
+      testsPassed: 0,
       radarScores: {
-        prog: 85,     // Programming & DSA
-        web: 84,      // Web & Frameworks
-        db: 80,       // Databases & SQL
-        cloud: 42,    // Cloud & DevOps (Gap area)
-        system: 56,   // System Design & Architecture
-        soft: 86      // Problem Solving & Aptitude
+        prog: 0,
+        web: 0,
+        db: 0,
+        cloud: 0,
+        system: 0,
+        soft: 0
       },
-      
-      skills: [
-        { id: 'react', name: 'React.js & Front-end', category: 'Web', level: 88, status: 'verified' },
-        { id: 'node', name: 'Node.js & Express REST APIs', category: 'Web', level: 82, status: 'verified' },
-        { id: 'python', name: 'Python & Scripting', category: 'Programming', level: 86, status: 'verified' },
-        { id: 'dsa', name: 'Data Structures & Algorithms', category: 'Programming', level: 85, status: 'verified' },
-        { id: 'sql', name: 'Relational DBMS & SQL (PostgreSQL)', category: 'Databases', level: 80, status: 'verified' },
-        { id: 'git', name: 'Git Version Control & CI/CD Basics', category: 'DevOps', level: 90, status: 'verified' },
-        { id: 'docker', name: 'Docker Containerization', category: 'DevOps', level: 35, status: 'gap' },
-        { id: 'k8s', name: 'Kubernetes Orchestration', category: 'DevOps', level: 20, status: 'critical-gap' },
-        { id: 'sysdesign', name: 'System Design & High Availability', category: 'Architecture', level: 54, status: 'gap' },
-        { id: 'microservices', name: 'Microservices & Message Queues', category: 'Architecture', level: 40, status: 'gap' },
-        { id: 'aws', name: 'AWS Cloud Fundamentals (EC2, S3, IAM)', category: 'DevOps', level: 45, status: 'gap' },
-        { id: 'soft', name: 'Analytical Thinking & Agile Communication', category: 'Aptitude', level: 88, status: 'verified' }
-      ]
+      skills: []
     },
+    activeStudentCredentials: null,
 
     // Company Database with Benchmarks
     companies: [
@@ -254,191 +988,15 @@
       }
     ],
 
-    // Recruiter Candidates View (Company Perspective)
-    recruiterCandidates: [
-      {
-        id: 'c1',
-        name: 'Hariprasad PS (You)',
-        roll: '2022CSE1042',
-        gpa: '8.72 CGPA',
-        readiness: 78,
-        tier: 'Tier 2: Pre-Screened',
-        tierClass: 'tier-moderate',
-        radarMatch: 84,
-        badges: ['React Certified', 'DSA Gold', 'SQL Specialist'],
-        keyStrengths: 'React.js, Node.js, SQL, DSA (85%)',
-        gapAlert: 'Docker & Kubernetes',
-        status: 'Available for Summer Intern'
-      },
-      {
-        id: 'c2',
-        name: 'Harshavardhan',
-        roll: '2022CSE1018',
-        gpa: '9.12 CGPA',
-        readiness: 92,
-        tier: 'Tier 1: Interview Ready',
-        tierClass: 'tier-high',
-        radarMatch: 95,
-        badges: ['Java Pro', 'Kafka Master', 'Spring Boot'],
-        keyStrengths: 'Full Stack, Docker, Spring Boot, Microservices',
-        gapAlert: 'Zero Critical Gaps',
-        status: 'Shortlisted by TechNova'
-      },
-      {
-        id: 'c3',
-        name: 'Kalangyiam',
-        roll: '2022CSE1014',
-        gpa: '8.40 CGPA',
-        readiness: 81,
-        tier: 'Tier 2: Pre-Screened',
-        tierClass: 'tier-moderate',
-        radarMatch: 82,
-        badges: ['AWS Practitioner', 'Python Specialist'],
-        keyStrengths: 'AWS, Python, Postgres, Redis',
-        gapAlert: 'System Design Complexity',
-        status: 'Application Under Review'
-      },
-      {
-        id: 'c4',
-        name: 'Harish M',
-        roll: '2022CSE1120',
-        gpa: '7.95 CGPA',
-        readiness: 64,
-        tier: 'Tier 3: Emerging Talent',
-        tierClass: 'tier-target',
-        radarMatch: 66,
-        badges: ['HTML/CSS Specialist', 'JavaScript Core'],
-        keyStrengths: 'UI Engineering, Next.js, Tailwind',
-        gapAlert: 'Backend Architecture, Docker, DSA',
-        status: 'Skill Bridging in Progress'
-      },
-      {
-        id: 'c5',
-        name: 'Heerthick Raj',
-        roll: '2022CSE1082',
-        gpa: '8.65 CGPA',
-        readiness: 86,
-        tier: 'Tier 1: Interview Ready',
-        tierClass: 'tier-high',
-        radarMatch: 88,
-        badges: ['Vector DB Certified', 'Python ML Specialist', 'SQL Pro'],
-        keyStrengths: 'Vector Systems, RAG, FastAPI, DBMS',
-        gapAlert: 'Zero Critical Gaps',
-        status: 'Interview Round 2'
-      },
-      {
-        id: 'c6',
-        name: 'Harini Sri',
-        roll: '2022CSE1064',
-        gpa: '9.05 CGPA',
-        readiness: 90,
-        tier: 'Tier 1: Interview Ready',
-        tierClass: 'tier-high',
-        radarMatch: 92,
-        badges: ['Cloud DevOps Specialist', 'Kubernetes Certified', 'Python Pro'],
-        keyStrengths: 'Cloud Architecture, Kubernetes, Docker, Python',
-        gapAlert: 'Zero Critical Gaps',
-        status: 'Shortlisted by Google Cloud'
-      }
-    ],
+    // Recruiter Candidates View (Company Perspective) - Starts clean, populated by live student registrations
+    recruiterCandidates: [],
 
     // -------------------------------------------------------------------------
     // FACULTY DATASETS
     // -------------------------------------------------------------------------
 
-    // 1. Comprehensive Student Cohort for Faculty Tracking
-    facultyStudents: [
-      {
-        id: 'f-s1',
-        name: 'Hariprasad PS',
-        roll: '2022CSE1042',
-        branch: 'B.Tech CSE • 7th Sem',
-        cgpa: 8.72,
-        readiness: 78,
-        trend: '+6% this month',
-        status: 'bridging',
-        statusLabel: 'In Active Bridging',
-        verifiedBadges: ['React.js Certified', 'PostgreSQL Specialist', 'DSA Gold', 'Git & CI/CD'],
-        buildingNow: 'Docker Containerization & Microservices',
-        radar: { prog: 85, web: 84, db: 80, cloud: 42, system: 56, soft: 86 },
-        targetCompany: 'TechNova Solutions (Full Stack)'
-      },
-      {
-        id: 'f-s2',
-        name: 'Harshavardhan',
-        roll: '2022CSE1018',
-        branch: 'B.Tech CSE • 7th Sem',
-        cgpa: 9.12,
-        readiness: 92,
-        trend: '+11% this month',
-        status: 'ready',
-        statusLabel: 'Placement Ready (>85%)',
-        verifiedBadges: ['Java Backend Pro', 'Kafka Master', 'Spring Boot Certified', 'Docker Verified', 'AWS Associate'],
-        buildingNow: 'Distributed Systems & Chaos Testing',
-        radar: { prog: 92, web: 90, db: 88, cloud: 84, system: 82, soft: 90 },
-        targetCompany: 'TechNova / Zoho Product Team'
-      },
-      {
-        id: 'f-s3',
-        name: 'Kalangyiam',
-        roll: '2022CSE1014',
-        branch: 'B.Tech CSE • 7th Sem',
-        cgpa: 8.40,
-        readiness: 81,
-        trend: '+4% this month',
-        status: 'bridging',
-        statusLabel: 'In Active Bridging',
-        verifiedBadges: ['AWS Cloud Practitioner', 'Python Specialist', 'SQL Optimization'],
-        buildingNow: 'AWS CloudFormation & Terraform IaC',
-        radar: { prog: 80, web: 78, db: 82, cloud: 74, system: 70, soft: 82 },
-        targetCompany: 'Amazon Web Services'
-      },
-      {
-        id: 'f-s4',
-        name: 'Harish M',
-        roll: '2022CSE1120',
-        branch: 'B.Tech CSE • 7th Sem',
-        cgpa: 7.95,
-        readiness: 64,
-        trend: '+8% this month',
-        status: 'support',
-        statusLabel: 'Needs Critical Support (<70%)',
-        verifiedBadges: ['HTML/CSS Specialist', 'JavaScript Core'],
-        buildingNow: 'FastAPI REST APIs & SQL Modeling',
-        radar: { prog: 62, web: 76, db: 60, cloud: 30, system: 40, soft: 75 },
-        targetCompany: 'Front-end Track at TechNova'
-      },
-      {
-        id: 'f-s5',
-        name: 'Heerthick Raj',
-        roll: '2022CSE1082',
-        branch: 'B.Tech CSE • 7th Sem',
-        cgpa: 8.65,
-        readiness: 86,
-        trend: '+7% this month',
-        status: 'ready',
-        statusLabel: 'Placement Ready (>85%)',
-        verifiedBadges: ['Vector DB Certified', 'Python ML Specialist', 'SQL Pro', 'DSA Gold'],
-        buildingNow: 'RAG Architecture & Latency Tuning',
-        radar: { prog: 86, web: 80, db: 84, cloud: 72, system: 75, soft: 88 },
-        targetCompany: 'DataCore AI Systems'
-      },
-      {
-        id: 'f-s6',
-        name: 'Harini Sri',
-        roll: '2022CSE1064',
-        branch: 'B.Tech CSE • 7th Sem',
-        cgpa: 9.05,
-        readiness: 90,
-        trend: '+9% this month',
-        status: 'ready',
-        statusLabel: 'Placement Ready (>85%)',
-        verifiedBadges: ['Cloud DevOps Specialist', 'Kubernetes Certified', 'Python Pro', 'Docker Verified'],
-        buildingNow: 'Service Mesh & Cloud Infrastructure Security',
-        radar: { prog: 90, web: 86, db: 85, cloud: 88, system: 82, soft: 92 },
-        targetCompany: 'Google Cloud / AWS Cloud Partner'
-      }
-    ],
+    // 1. Comprehensive Student Cohort for Faculty Tracking - Starts clean, populated by live student registrations
+    facultyStudents: [],
 
     // 2. Emerging Market Technologies vs Syllabus Coverage
     marketTechTrends: [
@@ -703,8 +1261,9 @@
       `;
     });
 
+    const isRegistered = state.student && state.student.isRegistered;
     const studentPoints = axes.map(a => {
-      const score = state.student.radarScores[a.key] || 50;
+      const score = isRegistered ? (state.student.radarScores[a.key] || 0) : 0;
       const pt = getCoords(score / 100, a.angle);
       return `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`;
     }).join(' ');
@@ -715,21 +1274,31 @@
       return `${pt.x.toFixed(1)},${pt.y.toFixed(1)}`;
     }).join(' ');
 
+    let studentPolygon = isRegistered
+      ? `<polygon points="${studentPoints}" fill="var(--accent-subtle)" stroke="var(--primary)" stroke-width="2.5" />`
+      : '';
     let studentVertices = '';
-    axes.forEach(a => {
-      const score = state.student.radarScores[a.key] || 50;
-      const pt = getCoords(score / 100, a.angle);
-      studentVertices += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="4" fill="var(--primary)" stroke="#09090b" stroke-width="1.8" />`;
-    });
+    if (isRegistered) {
+      axes.forEach(a => {
+        const score = state.student.radarScores[a.key] || 0;
+        const pt = getCoords(score / 100, a.angle);
+        studentVertices += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="4" fill="var(--primary)" stroke="#09090b" stroke-width="1.8" />`;
+      });
+    }
 
     const svg = `
       <svg class="radar-svg" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         ${gridPolygons}
         ${axisElements}
         <polygon points="${companyPoints}" fill="rgba(244, 63, 94, 0.15)" stroke="#f43f5e" stroke-width="2" stroke-dasharray="4 3" />
-        <polygon points="${studentPoints}" fill="var(--accent-subtle)" stroke="var(--primary)" stroke-width="2.5" />
+        ${studentPolygon}
         ${studentVertices}
       </svg>
+      ${!isRegistered ? `
+        <div style="text-align: center; font-size: 0.76rem; color: var(--text-muted); margin-top: 6px; padding: 6px 10px; background: var(--bg-card); border-radius: 8px; border: 1px dashed var(--border-medium);">
+          Awaiting student registration. Click <strong>"Register Live Student"</strong> above to plot your live multi-axis competency polygon.
+        </div>
+      ` : ''}
     `;
 
     container.innerHTML = svg;
@@ -746,17 +1315,20 @@
     const list = document.getElementById('category-bars-list');
     if (!list) return;
 
+    const isRegistered = state.student && state.student.isRegistered;
+    const s = state.student;
+
     const categories = [
-      { name: 'DSA & Programming', student: state.student.radarScores.prog, req: company.benchmark.prog },
-      { name: 'Web & API Architecture', student: state.student.radarScores.web, req: company.benchmark.web },
-      { name: 'Databases & SQL', student: state.student.radarScores.db, req: company.benchmark.db },
-      { name: 'DevOps & Containerization', student: state.student.radarScores.cloud, req: company.benchmark.cloud },
-      { name: 'System Design', student: state.student.radarScores.system, req: company.benchmark.system },
-      { name: 'Problem Solving & Soft Skills', student: state.student.radarScores.soft, req: company.benchmark.soft }
+      { name: 'DSA & Programming', student: isRegistered ? (s.radarScores.prog || 0) : 0, req: company.benchmark.prog },
+      { name: 'Web & API Architecture', student: isRegistered ? (s.radarScores.web || 0) : 0, req: company.benchmark.web },
+      { name: 'Databases & SQL', student: isRegistered ? (s.radarScores.db || 0) : 0, req: company.benchmark.db },
+      { name: 'DevOps & Containerization', student: isRegistered ? (s.radarScores.cloud || 0) : 0, req: company.benchmark.cloud },
+      { name: 'System Design', student: isRegistered ? (s.radarScores.system || 0) : 0, req: company.benchmark.system },
+      { name: 'Problem Solving & Soft Skills', student: isRegistered ? (s.radarScores.soft || 0) : 0, req: company.benchmark.soft }
     ];
 
     list.innerHTML = categories.map(cat => {
-      const isDeficit = cat.student < cat.req;
+      const isDeficit = !isRegistered || (cat.student < cat.req);
       const fillPercent = Math.min(100, Math.max(0, cat.student));
       const cutoffPercent = Math.min(100, Math.max(0, cat.req));
 
@@ -765,7 +1337,7 @@
           <div class="cat-bar-labels">
             <span class="cat-name">${cat.name}</span>
             <span class="cat-values">
-              <span style="color: ${isDeficit ? '#ef4444' : '#22c55e'};">${cat.student}%</span> / Req: ${cat.req}%
+              <span style="color: ${!isRegistered ? 'var(--text-muted)' : (isDeficit ? '#ef4444' : '#22c55e')};">${isRegistered ? cat.student + '%' : '0%'}</span> / Req: ${cat.req}%
             </span>
           </div>
           <div class="progress-track-dual">
@@ -803,9 +1375,15 @@
     }
 
     container.innerHTML = filtered.map(c => {
+      const isRegistered = state.student && state.student.isRegistered;
       const isSelected = c.id === state.selectedCompanyId;
-      const tierClass = c.matchScore >= 85 ? 'tier-high' : (c.matchScore >= 70 ? 'tier-moderate' : 'tier-target');
-      const tierName = c.matchScore >= 85 ? 'High Match' : (c.matchScore >= 70 ? 'Strong Fit' : 'Target Goal');
+      const tierClass = isRegistered
+        ? (c.matchScore >= 85 ? 'tier-high' : (c.matchScore >= 70 ? 'tier-moderate' : 'tier-target'))
+        : 'tier-target';
+      const tierName = isRegistered
+        ? (c.matchScore >= 85 ? 'High Match' : (c.matchScore >= 70 ? 'Strong Fit' : 'Target Goal'))
+        : 'Awaiting Intake';
+      const displayScore = isRegistered ? `${c.matchScore}%` : 'Pending';
 
       return `
         <div class="company-card ${isSelected ? 'selected' : ''}" data-company-id="${c.id}" onclick="window.SkillBridge.selectCompany('${c.id}')">
@@ -822,7 +1400,7 @@
             
             <div class="match-score-badge">
               <div class="score-pill ${tierClass}">
-                <span>${c.matchScore}%</span>
+                <span>${displayScore}</span>
               </div>
               <div class="tier-label">${tierName}</div>
             </div>
@@ -831,7 +1409,7 @@
           <div class="company-card-middle">
             <div class="explainable-reason">
               <span style="font-size: 1rem;">💡</span>
-              <span><strong>Explainable AI Match:</strong> ${c.explainableReason}</span>
+              <span><strong>Explainable AI Match:</strong> ${isRegistered ? c.explainableReason : 'Register live student in the top session bar to compute real-time WVSE-v2 vector match.'}</span>
             </div>
             
             <div class="skills-tags-row">
@@ -1131,6 +1709,22 @@
     const recNameEl = document.getElementById('recruiter-company-name');
     if (recNameEl) recNameEl.textContent = company.name;
 
+    if (state.recruiterCandidates.length === 0) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; padding: 48px 24px; color: var(--text-muted);">
+            <div style="font-size: 2.2rem; margin-bottom: 8px;">🏢</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Candidate Talent Pool is Empty</div>
+            <div style="font-size: 0.85rem; max-width: 480px; margin: 0 auto 16px;">All previous student data has been wiped. Register live students using the Student Intake Portal to calibrate and populate candidates for corporate recruiting.</div>
+            <button class="action-btn-neon" onclick="window.SkillBridge.switchPerspective('student'); window.SkillBridge.openRegisterModal();" style="padding: 8px 20px; font-size: 0.85rem;">
+              <span>✨</span> Register Live Student
+            </button>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
     tableBody.innerHTML = state.recruiterCandidates.map(cand => {
       const readiness = cand.id === 'c1' ? state.student.overallReadiness : cand.readiness;
       const matchScore = cand.id === 'c1' ? company.matchScore : cand.radarMatch;
@@ -1190,6 +1784,22 @@
   function renderFacultyStudents() {
     const tbody = document.getElementById('faculty-students-tbody');
     if (!tbody) return;
+
+    if (state.facultyStudents.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 48px 24px; color: var(--text-muted);">
+            <div style="font-size: 2.2rem; margin-bottom: 8px;">🎓</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">No Live Student Records in Academic Cohort</div>
+            <div style="font-size: 0.85rem; max-width: 480px; margin: 0 auto 16px;">Clean slate initialized. Register a live student in the Student Portal to populate this faculty cohort table with real-time academic and placement telemetry.</div>
+            <button class="action-btn-neon" onclick="window.SkillBridge.switchPerspective('student'); window.SkillBridge.openRegisterModal();" style="padding: 8px 20px; font-size: 0.85rem;">
+              <span>✨</span> Launch Student Intake
+            </button>
+          </td>
+        </tr>
+      `;
+      return;
+    }
 
     const filtered = state.facultyStudents.filter(s => {
       const matchesFilter = state.facultyStudentFilter === 'all' || s.status === state.facultyStudentFilter;
@@ -1519,8 +2129,36 @@
     if (modal) modal.classList.remove('active');
   }
 
-  function submitQuiz() {
+  async function submitQuiz() {
     closeQuizModal();
+
+    let certHash = null;
+    let apiSuccess = false;
+
+    // Connect to Node.js Backend API if reachable
+    if (ApiClient.isConnected) {
+      try {
+        showToast('Transmitting proctored assessment telemetry to Node.js Backend...', 'info');
+        
+        // 1. Submit adaptive quiz answers to backend
+        const assessmentRes = await ApiClient.submitAssessment('cloud_docker', [1, 2, 1, 0]);
+        
+        // 2. Request cryptographic certificate verification & seal
+        const certRes = await ApiClient.verifyCertificate({
+          title: 'Docker Certified Associate (DCA)',
+          issuer: 'Docker Inc. / Linux Foundation',
+          issue_date: '2026-09-15',
+          skill_code: 'cloud_docker'
+        });
+
+        if (certRes && certRes.certificate && certRes.certificate.verification_hash) {
+          certHash = certRes.certificate.verification_hash;
+          apiSuccess = true;
+        }
+      } catch (err) {
+        console.warn('Backend quiz submit error:', err);
+      }
+    }
 
     state.student.radarScores.cloud = 76;
     state.student.radarScores.web = 89;
@@ -1564,8 +2202,11 @@
     renderRecruiterPortal();
     renderFacultyStudents();
 
-    openCertificateModal('Docker Containerization & Microservices');
-    showToast('Congratulations! You passed the TechNova Validation Quiz with 100% score! Overall readiness boosted to 86%.', 'success');
+    openCertificateModal('Docker Containerization & Microservices', certHash);
+    const successMsg = apiSuccess
+      ? '🎉 Assessment scored 100% on Backend! Cryptographic SHA-256 seal issued & stored in PostgreSQL.'
+      : 'Congratulations! You passed the TechNova Validation Quiz with 100% score! Overall readiness boosted to 86%.';
+    showToast(successMsg, 'success');
   }
 
   function updateExecutiveMetrics() {
@@ -1574,16 +2215,19 @@
     const gapEl = document.getElementById('metric-critical-gaps');
     const highMatchEl = document.getElementById('metric-high-matches');
 
-    if (readEl) readEl.textContent = `${state.student.overallReadiness}%`;
-    if (badgeEl) badgeEl.textContent = state.student.verifiedBadgesCount;
-    if (gapEl) gapEl.textContent = state.student.criticalGapsCount;
+    const s = state.student;
+    const isRegistered = s && s.isRegistered;
+
+    if (readEl) readEl.textContent = isRegistered ? `${s.overallReadiness}%` : '0%';
+    if (badgeEl) badgeEl.textContent = isRegistered ? s.verifiedBadgesCount : 0;
+    if (gapEl) gapEl.textContent = isRegistered ? s.criticalGapsCount : 0;
     if (highMatchEl) {
-      const count = state.companies.filter(c => c.matchScore >= 85).length;
+      const count = isRegistered ? state.companies.filter(c => c.matchScore >= 85).length : 0;
       highMatchEl.textContent = count;
     }
   }
 
-  function openCertificateModal(skillName) {
+  function openCertificateModal(skillName, customHash) {
     const modal = document.getElementById('cert-modal');
     if (!modal) return;
     
@@ -1592,7 +2236,7 @@
     const dateEl = document.getElementById('cert-issue-date');
 
     if (titleEl) titleEl.textContent = skillName || 'Docker Containerization & Microservices';
-    if (hashEl) hashEl.textContent = 'HASH: 0x9F' + Math.floor(10000000 + Math.random() * 90000000).toString(16).toUpperCase();
+    if (hashEl) hashEl.textContent = customHash ? `HASH: ${customHash}` : ('HASH: 0x9F' + Math.floor(10000000 + Math.random() * 90000000).toString(16).toUpperCase());
     if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
     modal.classList.add('active');
@@ -1688,7 +2332,7 @@
     if (modal) modal.classList.remove('active');
   }
 
-  function submitRecruiterFeedback() {
+  async function submitRecruiterFeedback() {
     const outcome = document.getElementById('feedback-outcome')?.value;
     const deficits = document.getElementById('feedback-deficits')?.value || 'Observed container volume persistence challenges during sandbox interview.';
     const cand = state.recruiterCandidates.find(c => c.id === activeFeedbackCandId);
@@ -1702,6 +2346,31 @@
         cand.status = 'Deficit Flagged (Curriculum Bridging)';
       }
       renderRecruiterPortal();
+    }
+
+    // Connect to Node.js Backend Telemetry API
+    if (ApiClient.isConnected) {
+      try {
+        await ApiClient.recordTelemetry({
+          student_id: cand ? cand.id : 'f-s1',
+          company_id: state.selectedRecruiterCompanyId || 'c-technova',
+          role_title: 'Full Stack Cloud Engineer',
+          technical_score: outcome === 'offer' ? 95 : (outcome === 'shortlist' ? 84 : 65),
+          practical_problem_score: outcome === 'offer' ? 92 : 75,
+          feedback_notes: deficits,
+          hire_verdict: outcome
+        });
+
+        await ApiClient.submitProposal({
+          course_code: 'CSE-402',
+          title: 'Curriculum Revision: Docker Container Volume Persistence & Compose Debugging',
+          department: 'Computer Science & Engineering',
+          proposed_modules: ['Docker Volume Management', 'Multi-Container Compose Debugging'],
+          deficit_justification: deficits
+        });
+      } catch (err) {
+        console.warn('Backend telemetry error:', err);
+      }
     }
 
     // Closed loop: Inject empirical deficit into faculty proposals registry
@@ -1719,7 +2388,7 @@
 
     renderSyllabusProposals();
     closeRecruiterFeedbackModal();
-    showToast('Recruiter interview telemetry dispatched! College Board of Studies and Dean Dr. S. K. Mukherjee notified of empirical deficit.', 'success');
+    showToast('Recruiter interview telemetry dispatched to Backend! College Board of Studies and Dean Dr. S. K. Mukherjee notified of empirical deficit.', 'success');
   }
 
   // ---------------------------------------------------------------------------
@@ -2178,7 +2847,69 @@
 
     submitRecruiterFeedback: function () {
       submitRecruiterFeedback();
-    }
+    },
+
+    syncWithBackend: function () {
+      return syncWithBackend();
+    },
+
+    openRegisterModal: function () {
+      openRegisterModal();
+    },
+
+    closeRegisterModal: function () {
+      closeRegisterModal();
+    },
+
+    openLoginModal: function () {
+      openLoginModal();
+    },
+
+    closeLoginModal: function () {
+      closeLoginModal();
+    },
+
+    openCredentialsModal: function (creds) {
+      openCredentialsModal(creds);
+    },
+
+    closeCredentialsModal: function () {
+      closeCredentialsModal();
+    },
+
+    copyCredentials: function () {
+      copyCredentials();
+    },
+
+    launchLiveTrackingFromModal: function () {
+      launchLiveTrackingFromModal();
+    },
+
+    submitStudentRegistration: function () {
+      submitStudentRegistration();
+    },
+
+    submitStudentLogin: function () {
+      submitStudentLogin();
+    },
+
+    resetStudentDataPrompt: function () {
+      resetStudentDataPrompt();
+    },
+
+    handleUserChipClick: function () {
+      handleUserChipClick();
+    },
+
+    applyLiveStudentData: function (student, creds, saveLocal) {
+      applyLiveStudentData(student, creds, saveLocal);
+    },
+
+    recalculateCompanyMatches: function (student) {
+      recalculateCompanyMatches(student);
+    },
+
+    api: ApiClient
   };
 
   // ---------------------------------------------------------------------------
@@ -2186,6 +2917,23 @@
   // ---------------------------------------------------------------------------
 
   document.addEventListener('DOMContentLoaded', function () {
+    // Check if a live student session exists in localStorage
+    const savedStudent = localStorage.getItem('skillbridge_auth_student');
+    if (savedStudent) {
+      try {
+        const parsed = JSON.parse(savedStudent);
+        if (parsed.student && parsed.student.isRegistered) {
+          applyLiveStudentData(parsed.student, parsed.credentials, false);
+        } else {
+          updateLiveStudentSessionUI();
+        }
+      } catch (e) {
+        updateLiveStudentSessionUI();
+      }
+    } else {
+      updateLiveStudentSessionUI();
+    }
+
     updateExecutiveMetrics();
     renderCompanyMatchingList();
     renderRadarChart(state.selectedCompanyId);
@@ -2202,6 +2950,9 @@
     window.SkillBridge.initAccent();
     window.SkillBridge.initTheme();
     renderPurpleAdminCharts();
+
+    // Auto-connect and synchronize with live Node.js / Express / PostgreSQL backend
+    syncWithBackend();
 
     const searchInput = document.getElementById('search-company-input');
     if (searchInput) {

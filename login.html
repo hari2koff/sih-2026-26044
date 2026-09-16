@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Login — SkillBridge | SIH 2026</title>
+  <meta name="description" content="Log in with your issued student credentials to access your live WVSE-v2 industry tracking dashboard on SkillBridge.">
+  <link rel="icon" type="image/jpeg" href="logo-dark.jpg">
+  <link rel="apple-touch-icon" href="logo-dark.jpg">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .login-wrapper {
+      min-height: calc(100vh - 160px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .login-card {
+      background: var(--bg-card, rgba(18, 18, 24, 0.85));
+      border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.16));
+      border-radius: var(--radius-xl, 24px);
+      padding: 40px;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: var(--shadow-xl, 0 25px 50px -12px rgba(0, 0, 0, 0.85));
+      backdrop-filter: blur(16px);
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent, #00f5a0), var(--blue, #8b5cf6));
+    }
+    .login-icon-badge {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--accent-subtle, rgba(0, 245, 160, 0.12));
+      border: 2px solid var(--accent-border, rgba(0, 245, 160, 0.4));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 16px;
+    }
+    .login-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--text-main, #f4f4f5);
+      margin-bottom: 8px;
+    }
+    .login-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted, #a1a1aa);
+      margin-bottom: 28px;
+      line-height: 1.4;
+    }
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      text-align: left;
+    }
+    .login-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .login-field label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted, #a1a1aa);
+    }
+    .login-field input {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.16));
+      border-radius: var(--radius-md, 12px);
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      color: var(--text-main, #f4f4f5);
+      outline: none;
+      transition: var(--transition-fast, 0.15s ease);
+    }
+    .login-field input:focus {
+      border-color: var(--accent, #00f5a0);
+      box-shadow: 0 0 0 3px var(--accent-subtle, rgba(0, 245, 160, 0.12));
+    }
+    .btn-login-submit {
+      width: 100%;
+      padding: 13px 20px;
+      border-radius: var(--radius-md, 12px);
+      background: var(--accent, #00f5a0);
+      color: #09090b;
+      font-size: 1rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all var(--transition-normal, 0.25s ease);
+      box-shadow: 0 4px 20px var(--accent-glow, rgba(0, 245, 160, 0.4));
+      margin-top: 8px;
+    }
+    .btn-login-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--accent-glow, rgba(0, 245, 160, 0.6));
+    }
+    .login-links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 24px;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .login-links a {
+      color: var(--accent, #00f5a0);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .login-links a:hover {
+      text-decoration: underline;
+    }
+    .demo-hint {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px dashed var(--border-medium, rgba(255, 255, 255, 0.16));
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 20px;
+      font-size: 0.78rem;
+      color: var(--text-muted, #a1a1aa);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top SIH 2026 Header Banner -->
+  <header class="top-banner">
+    <div>
+      <span class="sih-badge">SIH 2026 • PS ID: SIH26044</span>
+      <span style="margin-left: 10px; opacity: 0.9;">Problem Statement: Portal for Academia-Industry Collaboration for Skill Mapping, Internships & Placements</span>
+    </div>
+    <div class="banner-links">
+      <span>Team: <strong>Tech Warriors</strong></span>
+      <span>Status: <strong>Evaluation Prototype Live</strong></span>
+      <div class="theme-mode-wrap" title="Toggle Interface Mode">
+        <span class="theme-mode-label">Theme:</span>
+        <button class="theme-pill active" data-theme-choice="dark" onclick="toggleTheme('dark')">🌙 Obsidian</button>
+        <button class="theme-pill" data-theme-choice="purple-light" onclick="toggleTheme('purple-light')">☀️ Light</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Navigation Bar -->
+  <nav class="app-navbar">
+    <div class="brand-wrapper" onclick="window.location.href='index.html'" style="cursor: pointer;">
+      <div class="brand-logo-icon">
+        <img src="logo-dark.jpg" alt="SkillBridge Logo" class="logo-dark-theme" width="42" height="42">
+        <img src="logo-light.jpg" alt="SkillBridge Logo" class="logo-light-theme" width="42" height="42">
+      </div>
+      <div class="brand-text">
+        <h1>Skill<span>Bridge</span></h1>
+        <div class="brand-subtitle">Academia-Industry Collaboration Platform</div>
+      </div>
+    </div>
+
+    <div class="nav-right-actions" style="display: flex; align-items: center; gap: 12px;">
+      <a href="index.html" class="action-btn-outline" style="text-decoration: none; padding: 8px 16px; font-size: 0.85rem;">
+        ← Back to Dashboard
+      </a>
+      <a href="register.html" class="action-btn-neon" style="text-decoration: none; padding: 8px 16px; font-size: 0.85rem;">
+        ✨ Register Student
+      </a>
+    </div>
+  </nav>
+
+  <main class="login-wrapper">
+    <div class="login-card">
+      <div class="login-icon-badge">🔐</div>
+      <h2 class="login-title">Student Portal Login</h2>
+      <p class="login-desc">
+        Enter your University Roll Number and Password to access your personal WVSE-v2 competency radar and corporate matching dashboard.
+      </p>
+
+      <form class="login-form" onsubmit="handleLoginSubmit(event)">
+        <div class="login-field">
+          <label for="login-user">Username / University Roll No</label>
+          <input type="text" id="login-user" placeholder="e.g. 2024CSE1099" required autofocus style="font-family: var(--font-mono, monospace); font-weight: 700; text-transform: uppercase;">
+        </div>
+
+        <div class="login-field">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label for="login-pass">Password / Access Key</label>
+            <span onclick="togglePasswordVisibility()" style="font-size: 0.75rem; color: var(--accent, #00f5a0); cursor: pointer;" id="toggle-pass-text">Show Password</span>
+          </div>
+          <input type="password" id="login-pass" placeholder="Enter your password" required>
+        </div>
+
+        <button type="submit" id="login-btn" class="btn-login-submit">
+          <span>🔓</span> Log In to Live Tracking
+        </button>
+      </form>
+
+      <div class="demo-hint">
+        <span>💡 Need a new student account?</span>
+        <a href="register.html" style="color: var(--accent, #00f5a0); font-weight: 700; text-decoration: none;">Register Now →</a>
+      </div>
+
+      <div class="login-links">
+        <a href="index.html" style="color: var(--text-muted, #a1a1aa);">← Return to Main Platform Dashboard</a>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 99999; display: flex; flex-direction: column; gap: 8px;"></div>
+
+  <script>
+    const API_BASE = 'http://localhost:5000/api/v1';
+
+    function togglePasswordVisibility() {
+      const passField = document.getElementById('login-pass');
+      const toggleText = document.getElementById('toggle-pass-text');
+      if (passField.type === 'password') {
+        passField.type = 'text';
+        toggleText.textContent = 'Hide Password';
+      } else {
+        passField.type = 'password';
+        toggleText.textContent = 'Show Password';
+      }
+    }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const loginBtn = document.getElementById('login-btn');
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<span>⏳</span> Authenticating with Database...';
+
+      const username = document.getElementById('login-user').value.trim().toUpperCase();
+      const password = document.getElementById('login-pass').value.trim();
+
+      try {
+        const res = await fetch(API_BASE + '/students/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const json = await res.json();
+
+        if (res.ok && json.success) {
+          const studentRec = (json.data && json.data.student) || json.student;
+          const credsRec = (json.data && json.data.credentials) || json.credentials || { username: username };
+          const token = (json.data && json.data.token) || json.token;
+
+          if (token) {
+            localStorage.setItem('skillbridge_auth_token', token);
+          }
+
+          if (studentRec) {
+            const sessionData = {
+              student: {
+                isRegistered: true,
+                id: studentRec.id,
+                name: studentRec.name,
+                rollNo: studentRec.roll_no,
+                institution: studentRec.institution_name,
+                department: studentRec.department,
+                semester: studentRec.semester,
+                cgpa: studentRec.cgpa,
+                overallReadiness: studentRec.overall_readiness,
+                verifiedBadgesCount: studentRec.verified_badges_count || 1,
+                criticalGapsCount: studentRec.critical_gaps_count !== undefined ? studentRec.critical_gaps_count : 1,
+                radarScores: {
+                  prog: studentRec.radar_prog || 75,
+                  web: studentRec.radar_web || 75,
+                  db: studentRec.radar_db || 70,
+                  cloud: studentRec.radar_cloud || 40,
+                  system: studentRec.radar_system || 50,
+                  soft: studentRec.radar_soft || 80
+                },
+                targetCompany: studentRec.target_company
+              },
+              credentials: {
+                username: username,
+                password: password,
+                name: studentRec.name
+              }
+            };
+            localStorage.setItem('skillbridge_auth_student', JSON.stringify(sessionData));
+          }
+
+          showToast('🔓 Login successful! Launching Live Tracking...', 'success');
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 800);
+          return;
+        } else {
+          showToast('⚠️ ' + (json.message || 'Invalid Username or Password.'), 'error');
+        }
+      } catch (err) {
+        console.warn('Backend server unreachable, checking local session credentials:', err);
+        // Offline check against localStorage
+        const saved = localStorage.getItem('skillbridge_auth_student');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed.credentials && 
+                parsed.credentials.username.toUpperCase() === username && 
+                parsed.credentials.password === password) {
+              showToast('🔓 Authenticated via local session! Launching...', 'success');
+              setTimeout(() => {
+                window.location.href = 'index.html';
+              }, 800);
+              return;
+            }
+          } catch (e) {}
+        }
+        showToast('⚠️ Could not connect to backend server. Please check port 5000.', 'error');
+      }
+
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = '<span>🔓</span> Log In to Live Tracking';
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.style.background = type === 'success' ? '#00f5a0' : (type === 'error' ? '#f43f5e' : '#38bdf8');
+      toast.style.color = '#09090b';
+      toast.style.padding = '10px 18px';
+      toast.style.borderRadius = '8px';
+      toast.style.fontWeight = '700';
+      toast.style.fontSize = '0.85rem';
+      toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)';
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    function toggleTheme(theme) {
+      if (theme === 'purple-light') {
+        document.documentElement.setAttribute('data-theme', 'purple-light');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+      localStorage.setItem('skillbridge_theme', theme);
+      document.querySelectorAll('.theme-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.themeChoice === theme);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('skillbridge_theme');
+      if (savedTheme === 'purple-light') {
+        toggleTheme('purple-light');
+      }
+      // Prefill username if student registered recently
+      const savedStudent = localStorage.getItem('skillbridge_auth_student');
+      if (savedStudent) {
+        try {
+          const parsed = JSON.parse(savedStudent);
+          if (parsed.credentials && parsed.credentials.username) {
+            document.getElementById('login-user').value = parsed.credentials.username;
+          }
+        } catch (e) {}
+      }
+    });
+  </script>
+</body>
+</html>

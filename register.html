@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Registration & Skill Intake — SkillBridge | SIH 2026</title>
+  <meta name="description" content="Register your student profile on SkillBridge. Capture academic records, baseline competencies, and generate credentials for live WVSE-v2 placement tracking.">
+  <link rel="icon" type="image/jpeg" href="logo-dark.jpg">
+  <link rel="apple-touch-icon" href="logo-dark.jpg">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .reg-container {
+      max-width: 900px;
+      margin: 32px auto 60px;
+      padding: 0 20px;
+    }
+    .reg-card {
+      background: var(--bg-card, rgba(18, 18, 24, 0.85));
+      border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.16));
+      border-radius: var(--radius-xl, 24px);
+      padding: 36px 40px;
+      box-shadow: var(--shadow-xl, 0 25px 50px -12px rgba(0, 0, 0, 0.85));
+      backdrop-filter: blur(16px);
+      position: relative;
+      overflow: hidden;
+    }
+    .reg-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent, #00f5a0), var(--blue, #8b5cf6), #00e5ff);
+    }
+    .reg-header {
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .reg-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent, #00f5a0);
+      background: var(--accent-subtle, rgba(0, 245, 160, 0.12));
+      border: 1px solid var(--accent-border, rgba(0, 245, 160, 0.4));
+      padding: 4px 12px;
+      border-radius: 9999px;
+      margin-bottom: 12px;
+    }
+    .reg-title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-main, #f4f4f5);
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .reg-subtitle {
+      font-size: 0.92rem;
+      color: var(--text-muted, #a1a1aa);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+    .form-section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main, #f4f4f5);
+      border-bottom: 1px solid var(--border-light, rgba(255, 255, 255, 0.08));
+      padding-bottom: 10px;
+      margin: 28px 0 20px;
+    }
+    .form-section-title span.sec-icon {
+      color: var(--accent, #00f5a0);
+      font-size: 1.2rem;
+    }
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 640px) {
+      .form-grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .reg-card {
+        padding: 24px 20px;
+      }
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-field label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted, #a1a1aa);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .form-field input, .form-field select {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.16));
+      border-radius: var(--radius-md, 12px);
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      color: var(--text-main, #f4f4f5);
+      outline: none;
+      transition: var(--transition-fast, 0.15s ease);
+    }
+    .form-field input:focus, .form-field select:focus {
+      border-color: var(--accent, #00f5a0);
+      box-shadow: 0 0 0 3px var(--accent-subtle, rgba(0, 245, 160, 0.12));
+    }
+    .skills-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border-light, rgba(255, 255, 255, 0.08));
+      border-radius: var(--radius-lg, 16px);
+      padding: 20px;
+    }
+    @media (max-width: 640px) {
+      .skills-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .skill-slider-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-main, #f4f4f5);
+    }
+    .slider-val-badge {
+      font-family: var(--font-mono, monospace);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--accent-subtle, rgba(0, 245, 160, 0.12));
+      color: var(--accent, #00f5a0);
+      border: 1px solid var(--accent-border, rgba(0, 245, 160, 0.4));
+    }
+    .custom-range {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.12);
+      outline: none;
+    }
+    .custom-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent, #00f5a0);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--accent-glow, rgba(0, 245, 160, 0.5));
+      transition: transform 0.1s ease;
+    }
+    .custom-range::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+    .live-readiness-meter {
+      background: linear-gradient(135deg, rgba(0, 245, 160, 0.08), rgba(139, 92, 246, 0.08));
+      border: 1px solid var(--accent-border, rgba(0, 245, 160, 0.3));
+      border-radius: var(--radius-lg, 16px);
+      padding: 16px 20px;
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .meter-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .meter-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted, #a1a1aa);
+    }
+    .meter-status {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent, #00f5a0);
+    }
+    .meter-score {
+      font-size: 2.2rem;
+      font-weight: 800;
+      font-family: var(--font-mono, monospace);
+      color: var(--text-main, #f4f4f5);
+    }
+    .btn-submit-reg {
+      width: 100%;
+      padding: 14px 24px;
+      border-radius: var(--radius-md, 12px);
+      background: var(--accent, #00f5a0);
+      color: #09090b;
+      font-size: 1rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all var(--transition-normal, 0.25s ease);
+      box-shadow: 0 4px 20px var(--accent-glow, rgba(0, 245, 160, 0.4));
+      margin-top: 10px;
+    }
+    .btn-submit-reg:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--accent-glow, rgba(0, 245, 160, 0.6));
+    }
+    .reg-footer-links {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+      font-size: 0.85rem;
+    }
+    .reg-footer-links a {
+      color: var(--accent, #00f5a0);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .reg-footer-links a:hover {
+      text-decoration: underline;
+    }
+    .success-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .success-overlay.active {
+      display: flex;
+    }
+    .success-card {
+      background: var(--bg-card, #121218);
+      border: 2px solid var(--accent, #00f5a0);
+      border-radius: var(--radius-xl, 24px);
+      padding: 36px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 25px 60px -10px rgba(0, 245, 160, 0.3);
+      text-align: center;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .success-icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+    .success-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-main, #f4f4f5);
+      margin-bottom: 6px;
+    }
+    .success-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted, #a1a1aa);
+      margin-bottom: 24px;
+      line-height: 1.4;
+    }
+    .cred-box {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px dashed var(--accent-border, rgba(0, 245, 160, 0.5));
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .cred-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .cred-row:last-child {
+      border-bottom: none;
+    }
+    .cred-k {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-muted, #a1a1aa);
+      text-transform: uppercase;
+    }
+    .cred-v {
+      font-family: var(--font-mono, monospace);
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--accent, #00f5a0);
+    }
+    .success-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top SIH 2026 Header Banner -->
+  <header class="top-banner">
+    <div>
+      <span class="sih-badge">SIH 2026 • PS ID: SIH26044</span>
+      <span style="margin-left: 10px; opacity: 0.9;">Problem Statement: Portal for Academia-Industry Collaboration for Skill Mapping, Internships & Placements</span>
+    </div>
+    <div class="banner-links">
+      <span>Team: <strong>Tech Warriors</strong></span>
+      <span>Status: <strong>Evaluation Prototype Live</strong></span>
+      <div class="theme-mode-wrap" title="Toggle Interface Mode">
+        <span class="theme-mode-label">Theme:</span>
+        <button class="theme-pill active" data-theme-choice="dark" onclick="toggleTheme('dark')">🌙 Obsidian</button>
+        <button class="theme-pill" data-theme-choice="purple-light" onclick="toggleTheme('purple-light')">☀️ Light</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Navigation Bar -->
+  <nav class="app-navbar">
+    <div class="brand-wrapper" onclick="window.location.href='index.html'" style="cursor: pointer;">
+      <div class="brand-logo-icon">
+        <img src="logo-dark.jpg" alt="SkillBridge Logo" class="logo-dark-theme" width="42" height="42">
+        <img src="logo-light.jpg" alt="SkillBridge Logo" class="logo-light-theme" width="42" height="42">
+      </div>
+      <div class="brand-text">
+        <h1>Skill<span>Bridge</span></h1>
+        <div class="brand-subtitle">Academia-Industry Collaboration Platform</div>
+      </div>
+    </div>
+
+    <div class="nav-right-actions" style="display: flex; align-items: center; gap: 12px;">
+      <a href="index.html" class="action-btn-outline" style="text-decoration: none; padding: 8px 16px; font-size: 0.85rem;">
+        ← Back to Dashboard
+      </a>
+      <a href="login.html" class="action-btn-neon" style="text-decoration: none; padding: 8px 16px; font-size: 0.85rem;">
+        🔑 Student Login
+      </a>
+    </div>
+  </nav>
+
+  <!-- Registration Main Container -->
+  <main class="reg-container">
+    <div class="reg-card">
+      <div class="reg-header">
+        <div class="reg-badge">🎓 Live Student Intake • Database Sync</div>
+        <h2 class="reg-title">Register Student Profile</h2>
+        <p class="reg-subtitle">
+          Submit your academic credentials and initial competency self-assessments to initialize your live student record in the PostgreSQL database and generate your secure access credentials.
+        </p>
+      </div>
+
+      <form id="student-reg-form" onsubmit="handleRegistrationSubmit(event)">
+        <!-- Section 1: Academic Profile -->
+        <div class="form-section-title">
+          <span class="sec-icon">👤</span>
+          <span>1. Academic & Personal Identification</span>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label for="reg-name">Student Full Name <span style="color: var(--rose, #f43f5e);">*</span></label>
+            <input type="text" id="reg-name" placeholder="e.g. Hariprasad PS" required autofocus>
+          </div>
+
+          <div class="form-field">
+            <label for="reg-roll">University Roll Number / Reg ID <span style="color: var(--rose, #f43f5e);">*</span></label>
+            <input type="text" id="reg-roll" placeholder="e.g. 2024CSE1099" required style="font-family: var(--font-mono, monospace); font-weight: 700; text-transform: uppercase;">
+          </div>
+        </div>
+
+        <div class="form-grid-2" style="margin-top: 14px;">
+          <div class="form-field">
+            <label for="reg-email">College Email Address</label>
+            <input type="email" id="reg-email" placeholder="student@college.edu">
+          </div>
+
+          <div class="form-field">
+            <label for="reg-institution">Institution / University Name</label>
+            <input type="text" id="reg-institution" value="National Institute of Technology">
+          </div>
+        </div>
+
+        <div class="form-grid-2" style="margin-top: 14px;">
+          <div class="form-field">
+            <label for="reg-department">Department / Branch</label>
+            <select id="reg-department">
+              <option value="Computer Science & Engineering" selected>Computer Science & Engineering</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Electronics & Communication">Electronics & Communication</option>
+              <option value="Data Science & Artificial Intelligence">Data Science & Artificial Intelligence</option>
+              <option value="Electrical & Electronics Engineering">Electrical & Electronics Engineering</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="reg-semester">Current Semester</label>
+            <select id="reg-semester">
+              <option value="7th Semester" selected>7th Semester (Final Year)</option>
+              <option value="8th Semester">8th Semester (Final Year)</option>
+              <option value="5th Semester">5th Semester (3rd Year)</option>
+              <option value="6th Semester">6th Semester (3rd Year)</option>
+              <option value="3rd Semester">3rd Semester (2nd Year)</option>
+              <option value="4th Semester">4th Semester (2nd Year)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid-2" style="margin-top: 14px;">
+          <div class="form-field">
+            <label for="reg-cgpa">Current Cumulative CGPA (0 - 10)</label>
+            <input type="number" id="reg-cgpa" step="0.01" min="0" max="10" value="8.65">
+          </div>
+
+          <div class="form-field">
+            <label for="reg-target">Desired Industry Track / Target Partner</label>
+            <select id="reg-target">
+              <option value="TechNova Solutions (Full Stack)" selected>TechNova Solutions — Full Stack Cloud Engineer (₹45,000/mo)</option>
+              <option value="DataCore Technologies (AI/ML)">DataCore Technologies — Enterprise RAG & Vector Systems (₹50,000/mo)</option>
+              <option value="CloudScale DevOps (Cloud Native)">CloudScale Systems — Kubernetes & SRE Intern (₹42,000/mo)</option>
+              <option value="FinTech Global (High-Frequency Trading)">FinTech Systems — Low Latency Java Specialist (₹48,000/mo)</option>
+              <option value="NextGen Mobility (IoT & Embedded)">NextGen Mobility — Embedded Firmware & RTOS (₹40,000/mo)</option>
+              <option value="CyberDefend Labs (AppSec)">CyberDefend Labs — Cloud Security & Penetration Testing (₹44,000/mo)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Section 2: Six Core Competency Sliders -->
+        <div class="form-section-title">
+          <span class="sec-icon">⚡</span>
+          <span>2. Six-Vector Baseline Competency Self-Assessment (WVSE-v2 Model)</span>
+        </div>
+
+        <div class="skills-grid">
+          <!-- 1. Programming -->
+          <div class="skill-slider-box">
+            <div class="slider-header">
+              <span>💻 Programming & Data Structures</span>
+              <span id="badge-prog" class="slider-val-badge">75%</span>
+            </div>
+            <input type="range" id="skill-prog" class="custom-range" min="20" max="100" value="75" oninput="updateSlider('prog')">
+            <span style="font-size: 0.72rem; color: var(--text-light, #71717a);">DSA, Algorithms, Python / Java / C++</span>
+          </div>
+
+          <!-- 2. Web Technologies -->
+          <div class="skill-slider-box">
+            <div class="slider-header">
+              <span>🌐 Modern Web & REST APIs</span>
+              <span id="badge-web" class="slider-val-badge">75%</span>
+            </div>
+            <input type="range" id="skill-web" class="custom-range" min="20" max="100" value="75" oninput="updateSlider('web')">
+            <span style="font-size: 0.72rem; color: var(--text-light, #71717a);">React.js, Node.js, Express, State Mgmt</span>
+          </div>
+
+          <!-- 3. Databases -->
+          <div class="skill-slider-box">
+            <div class="slider-header">
+              <span>🗄️ Databases & SQL Optimization</span>
+              <span id="badge-db" class="slider-val-badge">70%</span>
+            </div>
+            <input type="range" id="skill-db" class="custom-range" min="20" max="100" value="70" oninput="updateSlider('db')">
+            <span style="font-size: 0.72rem; color: var(--text-light, #71717a);">PostgreSQL, Query Indexing, Normalization</span>
+          </div>
+
+          <!-- 4. Cloud & DevOps -->
+          <div class="skill-slider-box">
+            <div class="slider-header">
+              <span>☁️ Cloud & Containerization</span>
+              <span id="badge-cloud" class="slider-val-badge">40%</span>
+            </div>
+            <input type="range" id="skill-cloud" class="custom-range" min="10" max="100" value="40" oninput="updateSlider('cloud')">
+            <span style="font-size: 0.72rem; color: var(--text-light, #71717a);">Docker, Kubernetes, Linux, CI/CD Actions</span>
+          </div>
+
+          <!-- 5. System Architecture -->
+          <div class="skill-slider-box">
+            <div class="slider-header">
+              <span>🏗️ System Architecture & Microservices</span>
+              <span id="badge-system" class="slider-val-badge">50%</span>
+            </div>
+            <input type="range" id="skill-system" class="custom-range" min="10" max="100" value="50" oninput="updateSlider('system')">
+            <span style="font-size: 0.72rem; color: var(--text-light, #71717a);">Microservices, Kafka, Caching, Event Driven</span>
+          </div>
+
+          <!-- 6. Soft Skills -->
+          <div class="skill-slider-box">
+            <div class="slider-header">
+              <span>🤝 Professional Soft Skills</span>
+              <span id="badge-soft" class="slider-val-badge">80%</span>
+            </div>
+            <input type="range" id="skill-soft" class="custom-range" min="20" max="100" value="80" oninput="updateSlider('soft')">
+            <span style="font-size: 0.72rem; color: var(--text-light, #71717a);">Agile Collaboration, Communication, Problem Solving</span>
+          </div>
+        </div>
+
+        <!-- Live Calculated Readiness Meter -->
+        <div class="live-readiness-meter">
+          <div class="meter-info">
+            <span class="meter-label">Calculated Industry Baseline Readiness</span>
+            <span id="meter-status-text" class="meter-status">Curriculum Bridging Candidate</span>
+          </div>
+          <div id="meter-score-text" class="meter-score">65%</div>
+        </div>
+
+        <!-- Section 3: Password & Security -->
+        <div class="form-section-title">
+          <span class="sec-icon">🔒</span>
+          <span>3. Security & Access Credentials</span>
+        </div>
+
+        <div class="form-field">
+          <label for="reg-password">
+            <span>Custom Password <span style="font-weight: 400; color: var(--text-light, #71717a);">(Optional)</span></span>
+            <span style="font-size: 0.72rem; color: var(--accent, #00f5a0);">Leave empty to auto-generate a secure access key</span>
+          </label>
+          <input type="text" id="reg-password" placeholder="e.g. Student@2026 or leave blank for auto-generation">
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn-submit-reg">
+          <span>🚀</span> Submit Registration to Database & Generate Access Key
+        </button>
+
+        <div class="reg-footer-links">
+          <span>Already have an account? <a href="login.html">Log in here →</a></span>
+          <a href="index.html">← Return to Main Platform</a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- Digital Student Access Card Success Modal -->
+  <div id="success-modal" class="success-overlay">
+    <div class="success-card">
+      <div class="success-icon">🎉</div>
+      <h3 class="success-title">Registration Successful!</h3>
+      <p class="success-desc">
+        Your student profile has been registered in the database. Save your credentials below to log into your live tracking dashboard anytime.
+      </p>
+
+      <div class="cred-box">
+        <div class="cred-row">
+          <span class="cred-k">Student Name</span>
+          <span id="disp-name" style="font-weight: 700; color: var(--text-main, #f4f4f5);">Hariprasad PS</span>
+        </div>
+        <div class="cred-row">
+          <span class="cred-k">Username / Roll No</span>
+          <span id="disp-username" class="cred-v">2024CSE1099</span>
+        </div>
+        <div class="cred-row">
+          <span class="cred-k">Issued Password</span>
+          <span id="disp-password" class="cred-v" style="color: #38bdf8;">SKILL-9142-X7</span>
+        </div>
+        <div class="cred-row">
+          <span class="cred-k">Initial Readiness</span>
+          <span id="disp-readiness" style="font-weight: 700; color: var(--accent, #00f5a0);">65%</span>
+        </div>
+      </div>
+
+      <div class="success-actions">
+        <button class="action-btn-neon" onclick="copyCredentials()" style="width: 100%; justify-content: center; padding: 12px;">
+          📋 Copy Credentials to Clipboard
+        </button>
+        <button class="action-btn-outline" onclick="goToLiveTracking()" style="width: 100%; justify-content: center; padding: 12px; font-weight: 700;">
+          ⚡ Launch Live Tracking Dashboard →
+        </button>
+        <a href="login.html" style="font-size: 0.82rem; color: var(--text-muted, #a1a1aa); text-decoration: none; margin-top: 6px;">
+          Go to Student Login Page
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 99999; display: flex; flex-direction: column; gap: 8px;"></div>
+
+  <script>
+    const API_BASE = 'http://localhost:5000/api/v1';
+    let currentCredentials = null;
+
+    function updateSlider(skill) {
+      const slider = document.getElementById('skill-' + skill);
+      const badge = document.getElementById('badge-' + skill);
+      if (slider && badge) {
+        badge.textContent = slider.value + '%';
+      }
+      calculateOverallReadiness();
+    }
+
+    function calculateOverallReadiness() {
+      const p = parseInt(document.getElementById('skill-prog')?.value || 75, 10);
+      const w = parseInt(document.getElementById('skill-web')?.value || 75, 10);
+      const d = parseInt(document.getElementById('skill-db')?.value || 70, 10);
+      const c = parseInt(document.getElementById('skill-cloud')?.value || 40, 10);
+      const s = parseInt(document.getElementById('skill-system')?.value || 50, 10);
+      const sf = parseInt(document.getElementById('skill-soft')?.value || 80, 10);
+
+      const avg = Math.round((p + w + d + c + s + sf) / 6);
+      const scoreEl = document.getElementById('meter-score-text');
+      const statusEl = document.getElementById('meter-status-text');
+
+      if (scoreEl) scoreEl.textContent = avg + '%';
+      if (statusEl) {
+        if (avg >= 85) {
+          statusEl.textContent = '🌟 Industry Placement Ready (High Match)';
+          statusEl.style.color = '#00f5a0';
+        } else if (avg >= 70) {
+          statusEl.textContent = '⚡ Active Bridging Candidate (Moderate Deficits)';
+          statusEl.style.color = '#38bdf8';
+        } else {
+          statusEl.textContent = '⚠️ Curriculum Bridging Candidate (Foundational)';
+          statusEl.style.color = '#f59e0b';
+        }
+      }
+      return avg;
+    }
+
+    async function handleRegistrationSubmit(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>⏳</span> Registering in Database...';
+
+      const name = document.getElementById('reg-name').value.trim();
+      const rollNo = document.getElementById('reg-roll').value.trim().toUpperCase();
+      const email = document.getElementById('reg-email').value.trim();
+      const institution = document.getElementById('reg-institution').value.trim();
+      const department = document.getElementById('reg-department').value;
+      const semester = document.getElementById('reg-semester').value;
+      const cgpa = parseFloat(document.getElementById('reg-cgpa').value) || 8.5;
+      const targetCompany = document.getElementById('reg-target').value;
+      const customPassword = document.getElementById('reg-password').value.trim();
+
+      const prog = parseInt(document.getElementById('skill-prog').value, 10);
+      const web = parseInt(document.getElementById('skill-web').value, 10);
+      const db = parseInt(document.getElementById('skill-db').value, 10);
+      const cloud = parseInt(document.getElementById('skill-cloud').value, 10);
+      const system = parseInt(document.getElementById('skill-system').value, 10);
+      const soft = parseInt(document.getElementById('skill-soft').value, 10);
+
+      const payload = {
+        name,
+        roll_no: rollNo,
+        email: email || (rollNo.toLowerCase() + '@college.edu'),
+        institution_name: institution,
+        department,
+        semester,
+        cgpa,
+        target_company: targetCompany,
+        password: customPassword,
+        radar_prog: prog,
+        radar_web: web,
+        radar_db: db,
+        radar_cloud: cloud,
+        radar_system: system,
+        radar_soft: soft
+      };
+
+      let registeredStudent = null;
+      let issuedCredentials = null;
+      let authToken = null;
+
+      try {
+        const res = await fetch(API_BASE + '/students/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (res.ok && json.success) {
+          registeredStudent = (json.data && json.data.student) || json.student;
+          issuedCredentials = (json.data && json.data.credentials) || json.credentials;
+          authToken = (json.data && json.data.token) || json.token;
+          showToast('✅ Profile registered in Database!', 'success');
+        } else {
+          showToast('⚠️ ' + (json.message || 'Registration issue'), 'error');
+        }
+      } catch (err) {
+        console.warn('Backend server unreachable, activating local fallback:', err);
+      }
+
+      // Fallback if backend was temporarily down
+      if (!registeredStudent) {
+        const autoPass = customPassword || ('SKILL-' + Math.floor(1000 + Math.random() * 9000) + '-' + Math.random().toString(36).substring(2, 4).toUpperCase());
+        const readiness = Math.round((prog + web + db + cloud + system + soft) / 6);
+        registeredStudent = {
+          id: 's-' + Date.now(),
+          name,
+          roll_no: rollNo,
+          institution_name: institution,
+          department,
+          semester,
+          cgpa,
+          overall_readiness: readiness,
+          verified_badges_count: 1,
+          critical_gaps_count: (cloud < 60 ? 1 : 0) + (system < 60 ? 1 : 0),
+          radar_prog: prog,
+          radar_web: web,
+          radar_db: db,
+          radar_cloud: cloud,
+          radar_system: system,
+          radar_soft: soft,
+          target_company: targetCompany
+        };
+        issuedCredentials = {
+          username: rollNo,
+          password: autoPass,
+          name: name
+        };
+        showToast('ℹ️ Saved locally in browser session.', 'info');
+      }
+
+      currentCredentials = issuedCredentials;
+
+      // Persist active student session to localStorage so index.html picks it up immediately
+      const sessionData = {
+        student: {
+          isRegistered: true,
+          id: registeredStudent.id,
+          name: registeredStudent.name,
+          rollNo: registeredStudent.roll_no,
+          institution: registeredStudent.institution_name,
+          department: registeredStudent.department,
+          semester: registeredStudent.semester,
+          cgpa: registeredStudent.cgpa,
+          overallReadiness: registeredStudent.overall_readiness,
+          verifiedBadgesCount: registeredStudent.verified_badges_count || 1,
+          criticalGapsCount: registeredStudent.critical_gaps_count !== undefined ? registeredStudent.critical_gaps_count : 1,
+          radarScores: {
+            prog: registeredStudent.radar_prog || prog,
+            web: registeredStudent.radar_web || web,
+            db: registeredStudent.radar_db || db,
+            cloud: registeredStudent.radar_cloud || cloud,
+            system: registeredStudent.radar_system || system,
+            soft: registeredStudent.radar_soft || soft
+          },
+          targetCompany: targetCompany
+        },
+        credentials: issuedCredentials
+      };
+
+      localStorage.setItem('skillbridge_auth_student', JSON.stringify(sessionData));
+      if (authToken) {
+        localStorage.setItem('skillbridge_auth_token', authToken);
+      }
+
+      // Show success modal
+      document.getElementById('disp-name').textContent = registeredStudent.name;
+      document.getElementById('disp-username').textContent = issuedCredentials.username;
+      document.getElementById('disp-password').textContent = issuedCredentials.password;
+      document.getElementById('disp-readiness').textContent = registeredStudent.overall_readiness + '%';
+
+      document.getElementById('success-modal').classList.add('active');
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<span>🚀</span> Submit Registration to Database & Generate Access Key';
+    }
+
+    function copyCredentials() {
+      if (!currentCredentials) return;
+      const text = 'SkillBridge Student Access Credentials\nName: ' + document.getElementById('disp-name').textContent + '\nUsername / Roll No: ' + currentCredentials.username + '\nPassword: ' + currentCredentials.password + '\nPortal: http://localhost:5000/';
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('📋 Credentials copied to clipboard!', 'success');
+      }).catch(() => {
+        showToast('Username: ' + currentCredentials.username + ' | Password: ' + currentCredentials.password, 'info');
+      });
+    }
+
+    function goToLiveTracking() {
+      window.location.href = 'index.html';
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.style.background = type === 'success' ? '#00f5a0' : (type === 'error' ? '#f43f5e' : '#38bdf8');
+      toast.style.color = '#09090b';
+      toast.style.padding = '10px 18px';
+      toast.style.borderRadius = '8px';
+      toast.style.fontWeight = '700';
+      toast.style.fontSize = '0.85rem';
+      toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)';
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    function toggleTheme(theme) {
+      if (theme === 'purple-light') {
+        document.documentElement.setAttribute('data-theme', 'purple-light');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+      localStorage.setItem('skillbridge_theme', theme);
+      document.querySelectorAll('.theme-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.themeChoice === theme);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('skillbridge_theme');
+      if (savedTheme === 'purple-light') {
+        toggleTheme('purple-light');
+      }
+      calculateOverallReadiness();
+    });
+  </script>
+</body>
+</html>

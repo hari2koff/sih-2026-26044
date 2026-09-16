@@ -3408,3 +3408,381 @@ label {
   background: #ffffff;
   color: #111827;
 }
+
+/* Live Backend Connection Badge */
+.backend-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  transition: all 0.3s ease;
+}
+
+.backend-badge.online {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+}
+
+.backend-badge.offline {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.backend-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulseDot 1.5s infinite;
+}
+
+/* ====================================================================
+   LIVE STUDENT SESSION BAR & REGISTRATION WIZARD STYLES
+   ==================================================================== */
+
+.live-student-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-card, #111116);
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-lg, 14px);
+  padding: 16px 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  position: relative;
+  overflow: hidden;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+[data-theme="purple-light"] .live-student-bar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.live-student-bar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--primary, #00f5a0), var(--primary-bright, #38bdf8));
+}
+
+.student-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.student-live-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid var(--border-light, rgba(255, 255, 255, 0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.student-live-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.student-live-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--text-main, #f8fafc);
+}
+
+[data-theme="purple-light"] .student-live-name {
+  color: #0f172a;
+}
+
+.student-session-pill {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.student-session-pill.active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.student-session-pill.unverified {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.student-live-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted, #94a3b8);
+  margin-top: 2px;
+}
+
+.student-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.action-btn-neon {
+  background: linear-gradient(135deg, var(--primary, #00f5a0), #00d284);
+  color: #050508;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 9px 18px;
+  border-radius: var(--radius-md, 8px);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 245, 160, 0.25);
+}
+
+.action-btn-neon:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 245, 160, 0.4);
+}
+
+.action-btn-outline {
+  background: transparent;
+  color: var(--text-main, #f8fafc);
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.2));
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 8px 16px;
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.action-btn-outline:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--primary, #00f5a0);
+}
+
+[data-theme="purple-light"] .action-btn-outline {
+  color: #1e293b;
+  border-color: #cbd5e1;
+}
+
+.action-btn-danger {
+  background: transparent;
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 8px 14px;
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.action-btn-danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+}
+
+/* Skill Range Intake Sliders */
+.skill-slider-box {
+  background: var(--bg-subtle, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.06));
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+[data-theme="purple-light"] .skill-slider-box {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.skill-range-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  accent-color: var(--primary, #00f5a0);
+  cursor: pointer;
+}
+
+/* Digital Student Credential Card */
+.student-credential-card {
+  background: linear-gradient(145deg, #15151c, #0a0a0f);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="purple-light"] .student-credential-card {
+  background: linear-gradient(145deg, #ffffff, #f1f5f9);
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.cred-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.cred-card-chip {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--primary, #00f5a0);
+  background: rgba(0, 245, 160, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.cred-card-seal {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.5px;
+}
+
+.cred-card-user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  margin-bottom: 18px;
+}
+
+.cred-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid var(--primary, #00f5a0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+}
+
+.cred-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main, #f8fafc);
+}
+
+[data-theme="purple-light"] .cred-name {
+  color: #0f172a;
+}
+
+.cred-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted, #94a3b8);
+}
+
+.credentials-vault-box {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+[data-theme="purple-light"] .credentials-vault-box {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.vault-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.vault-row:last-child {
+  margin-bottom: 0;
+}
+
+.vault-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted, #94a3b8);
+  letter-spacing: 0.5px;
+}
+
+.vault-value {
+  font-size: 0.95rem;
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--text-main, #f8fafc);
+}
+
+[data-theme="purple-light"] .vault-value {
+  color: #0f172a;
+}
+
+.vault-value.code-pass {
+  color: #fbbf24;
+  letter-spacing: 1px;
+}
+
+.btn-copy-creds {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.15));
+  color: var(--text-main, #f8fafc);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-copy-creds:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--primary, #00f5a0);
+}
+
+[data-theme="purple-light"] .btn-copy-creds {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
